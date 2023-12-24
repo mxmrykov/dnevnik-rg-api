@@ -3,6 +3,7 @@ package app
 import (
 	"dnevnik-rg.ru/config"
 	"dnevnik-rg.ru/internal/repository"
+	"dnevnik-rg.ru/pkg/http"
 	"dnevnik-rg.ru/pkg/postgres"
 	"log"
 )
@@ -26,6 +27,10 @@ func App(appConfig *config.Config) {
 	if errInitClasses := repos.InitTableClasses(); errInitClasses != nil {
 		log.Printf("error initializing classes table: %v\n", errInitClasses)
 	}
+	if errInitAdmins := repos.InitTableAdmins(); errInitAdmins != nil {
+		log.Printf("error initializing classes table: %v\n", errInitAdmins)
+	}
 	log.Println("db tables initialized")
-
+	log.Println("starting web server...")
+	http.NewHttp(&appConfig.Http, repos)
 }

@@ -2,6 +2,7 @@ package external
 
 import (
 	"dnevnik-rg.ru/internal/cache"
+	"dnevnik-rg.ru/internal/repository"
 	"net/http"
 )
 
@@ -10,11 +11,12 @@ type Server interface {
 }
 
 type server struct {
-	Cache *cache.Cache
+	Cache      *cache.Cache
+	Repository *repository.Repository
 }
 
-func NewServer() server {
-	return server{Cache: cache.NewCache()}
+func NewServer(repo *repository.Repository) server {
+	return server{Cache: cache.NewCache(), Repository: repo}
 }
 
 const (
