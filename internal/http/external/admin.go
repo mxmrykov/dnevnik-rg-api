@@ -66,3 +66,7 @@ func (s *server) CreateAdmin(write http.ResponseWriter, request *http.Request) {
 	WriteDataResponse(write, "Администратор зарегистрирован", false, http.StatusOK, admin)
 	return
 }
+
+func (s *server) GetAdmin() {
+
+}

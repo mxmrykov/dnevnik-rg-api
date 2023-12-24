@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"github.com/ilyakaznacheev/cleanenv"
+	"os"
 )
 
 type (
@@ -40,8 +41,17 @@ func NewConfig() (*Config, error) {
 	if errReadConfig := cleanenv.ReadConfig(stageConfigPath, config); errReadConfig != nil {
 		return nil, fmt.Errorf("error read config: %v", errReadConfig)
 	}
-	if errReadEnv := cleanenv.ReadEnv(config); errReadEnv != nil {
-		return nil, fmt.Errorf("error read environment: %v", errReadEnv)
+	if err := os.Setenv("JWT_SECRET", config.JwtSecret); err != nil {
+		return nil, err
+	}
+	if err := os.Setenv("APP_NAME", config.Name); err != nil {
+		return nil, err
+	}
+	if err := os.Setenv("APP_VERSION", config.Version); err != nil {
+		return nil, err
+	}
+	if err := os.Setenv("DEPLOY", config.Deploy); err != nil {
+		return nil, err
 	}
 	return config, nil
 }
