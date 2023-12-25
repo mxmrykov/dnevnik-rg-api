@@ -8,6 +8,7 @@ import (
 
 type Server interface {
 	CreateAdmin(write http.ResponseWriter, request *http.Request)
+	GetAdmin(write http.ResponseWriter, request *http.Request)
 }
 
 type server struct {
@@ -23,4 +24,5 @@ const (
 	GroupV1 = "/api/v1"
 
 	CreateAdminRoute = "/users/admin/create"
+	GetAdminRoute    = "/users/admin/get"
 )

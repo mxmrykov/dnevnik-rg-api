@@ -12,6 +12,7 @@ func NewHttp(configHttp *config.Http, repo *repository.Repository) {
 	mux := http.NewServeMux()
 	server := external.NewServer(repo)
 	mux.HandleFunc(external.GroupV1+external.CreateAdminRoute, server.CreateAdmin)
+	mux.HandleFunc(external.GroupV1+external.GetAdminRoute, server.GetAdmin)
 	handler := external.CheckPermission(mux)
 	handler = external.Logger(handler)
 	log.Println("server started on", configHttp.Host+":"+configHttp.Port)

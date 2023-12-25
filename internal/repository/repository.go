@@ -78,7 +78,7 @@ func (r *Repository) NewPassword(password models.Password) error {
 	_, errNewAdmin := r.Pool.Exec(
 		context.Background(),
 		postgres_requests.NewPassword,
-		password.Key, password.CheckSum, password.LastUpdate,
+		password.Key, password.CheckSum, password.Token, password.LastUpdate,
 	)
 	return errNewAdmin
 }
@@ -105,6 +105,19 @@ func (r *Repository) GetAdmin(key int) (response.Admin, error) {
 		&Admin.LogoUri,
 		&Admin.CheckSum,
 		&Admin.LastUpdate,
+		&Admin.Token,
 	)
 	return Admin, err
+}
+
+func (r *Repository) IsAdminExists(key int) (bool, error) {
+	var count int
+	err := r.Pool.QueryRow(
+		context.Background(),
+		postgres_requests.IsAdminExists,
+		key,
+	).Scan(
+		&count,
+	)
+	return count == 1, err
 }

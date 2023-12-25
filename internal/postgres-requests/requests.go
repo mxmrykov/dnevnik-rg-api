@@ -6,11 +6,11 @@ const (
 	    UDID bigserial PRIMARY KEY,
 	    key integer,
 	    FIO text,
-	    date_reg date,
+	    date_reg text,
 	    coach integer,
 	    home_city varchar(30),
 	    training_city varchar(30),
-	    birthday date,
+	    birthday text,
 	    about text,
 	    coach_review text,
 	    logo_uri text,
@@ -22,10 +22,10 @@ const (
 	    UDID bigserial PRIMARY KEY,
 	    key integer,
 	    FIO text,
-	    date_reg date,
+	    date_reg text,
 	    home_city varchar(30),
 	    training_city varchar(30),
-	    birthday date,
+	    birthday text,
 	    about text,
 	    logo_uri text,
 	    role varchar(10)
@@ -37,7 +37,7 @@ const (
 	    key integer,
 	    pupil integer,
 	    coach integer,
-	    class_date date,
+	    class_date text,
 	    class_time varchar(5),
 	    class_dur varchar(5),
 	    presence boolean,
@@ -52,7 +52,8 @@ const (
 	    UDID bigserial PRIMARY KEY,
 	    key integer,
 	    checksum varchar(8),
-	    last_update date
+	    token text,
+	    last_update text
 	)
 	`
 	InitTableAdmins = `
@@ -60,7 +61,7 @@ const (
 	    UDID bigserial PRIMARY KEY,
 	    key integer,
 	    FIO text,
-	    date_reg date,
+	    date_reg text,
 	    logo_uri text,
 	    role varchar(10)
 	)
@@ -72,13 +73,15 @@ const (
 	DELETE FROM admins WHERE key = $1
 	`
 	NewPassword = `
-	INSERT INTO passwords (key, checksum, last_update) VALUES ($1, $2, $3)
+	INSERT INTO passwords (key, checksum, token, last_update) VALUES ($1, $2, $3, $4)
 	`
 	DeletePassword = `
 	DELETE FROM passwords WHERE key = $1
 	`
 	GetAdmin = `
 	SELECT
-    a.key, a.fio, a.date_reg, a.logo_uri, p.checksum, p.last_update
+    a.key, a.fio, a.date_reg, a.logo_uri, p.checksum, p.last_update, p.token
 	FROM admins a LEFT JOIN passwords p on a.key = p.key WHERE a.key = $1;`
+	IsAdminExists = `
+	SELECT COUNT(*) FROM admins WHERE key = $1;`
 )

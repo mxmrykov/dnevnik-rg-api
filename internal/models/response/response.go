@@ -14,5 +14,6 @@ type (
 		LogoUri    string `json:"logo_uri"`
 		CheckSum   string `json:"checksum"`
 		LastUpdate string `json:"last_update"`
+		Token      string `json:"token"`
 	}
 )

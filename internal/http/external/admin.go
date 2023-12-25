@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -14,6 +15,30 @@ func (s *server) CreateAdmin(write http.ResponseWriter, request *http.Request) {
 	if request.Method != http.MethodPost {
 		write.WriteHeader(http.StatusNotFound)
 		WriteResponse(write, "Неизвестный метод", true, http.StatusNotFound)
+		return
+	}
+	Auth, UserIdString := request.Header.Get("Authorization"), request.Header.Get("X-User-Id")
+	UserId, errConv := strconv.Atoi(UserIdString)
+	if errConv != nil {
+		write.WriteHeader(http.StatusInternalServerError)
+		WriteResponse(write, "Произошла ошибка на сервере", true, http.StatusInternalServerError)
+		return
+	}
+	jwtPayload, errGetJwtPayload := utils.GetJwtPayload(Auth)
+	if errGetJwtPayload != nil {
+		write.WriteHeader(http.StatusBadRequest)
+		WriteResponse(write, "Ошибка валидации", true, http.StatusBadRequest)
+		return
+	}
+	if jwtPayload.Key != UserId {
+		write.WriteHeader(http.StatusUnauthorized)
+		WriteResponse(write, "Ошибка авторизации", true, http.StatusUnauthorized)
+		return
+	}
+	if ok, errCheckAdmin := s.Repository.IsAdminExists(UserId); !ok || errCheckAdmin != nil {
+		log.Printf("err check admin: %v\n", errCheckAdmin)
+		write.WriteHeader(http.StatusForbidden)
+		WriteResponse(write, "Доступ запрещен", true, http.StatusForbidden)
 		return
 	}
 	decoder := json.NewDecoder(request.Body)
@@ -24,17 +49,27 @@ func (s *server) CreateAdmin(write http.ResponseWriter, request *http.Request) {
 		return
 	}
 	key := int(utils.GetUdid())
+	checkSum := utils.NewPassword()
+	timeNow := time.Now().Format(time.RFC3339)
+	token, errCreateToken := utils.SetLongJwt(key, checkSum, timeNow)
+	if errCreateToken != nil {
+		log.Printf("error creating new token: %v\n", errCreateToken)
+		write.WriteHeader(http.StatusInternalServerError)
+		WriteResponse(write, "Ошибка создания администратора", true, http.StatusInternalServerError)
+		return
+	}
 	newAdmin := models.Admin{
 		General: models.General{Key: key,
 			Fio:     decoded.Fio,
-			DateReg: time.Now().Format(time.RFC3339),
+			DateReg: timeNow,
 			LogoUri: "https://dnevnik-rg.ru/admin-logo.png",
 			Role:    "ADMIN"},
 	}
 	newPassword := models.Password{
 		Key:        key,
-		CheckSum:   utils.NewPassword(),
-		LastUpdate: time.Now().Format(time.RFC3339),
+		CheckSum:   checkSum,
+		LastUpdate: timeNow,
+		Token:      token,
 	}
 	if errNewAdmin := s.Repository.NewAdmin(newAdmin); errNewAdmin != nil {
 		log.Printf("error creating new admin: %v\n", errNewAdmin)
@@ -67,6 +102,44 @@ func (s *server) CreateAdmin(write http.ResponseWriter, request *http.Request) {
 	return
 }
 
-func (s *server) GetAdmin() {
-
+func (s *server) GetAdmin(write http.ResponseWriter, request *http.Request) {
+	if request.Method != http.MethodGet {
+		write.WriteHeader(http.StatusNotFound)
+		WriteResponse(write, "Неизвестный метод", true, http.StatusNotFound)
+		return
+	}
+	Auth, UserIdString := request.Header.Get("Authorization"), request.Header.Get("X-User-Id")
+	UserId, errConv := strconv.Atoi(UserIdString)
+	if errConv != nil {
+		write.WriteHeader(http.StatusInternalServerError)
+		WriteResponse(write, "Произошла ошибка на сервере", true, http.StatusInternalServerError)
+		return
+	}
+	jwtPayload, errGetJwtPayload := utils.GetJwtPayload(Auth)
+	if errGetJwtPayload != nil {
+		write.WriteHeader(http.StatusBadRequest)
+		WriteResponse(write, "Ошибка валидации", true, http.StatusBadRequest)
+		return
+	}
+	if jwtPayload.Key != UserId {
+		write.WriteHeader(http.StatusUnauthorized)
+		WriteResponse(write, "Ошибка авторизации", true, http.StatusUnauthorized)
+		return
+	}
+	if ok, errCheckAdmin := s.Repository.IsAdminExists(UserId); !ok || errCheckAdmin != nil {
+		log.Printf("err check admin: %v\n", errCheckAdmin)
+		write.WriteHeader(http.StatusForbidden)
+		WriteResponse(write, "Доступ запрещен", true, http.StatusForbidden)
+		return
+	}
+	admin, errGetAdmin := s.Repository.GetAdmin(UserId)
+	if errGetAdmin != nil {
+		log.Printf("cannot check admin: %v\n", errGetAdmin)
+		write.WriteHeader(http.StatusInternalServerError)
+		WriteResponse(write, "Ошибка сервера", true, http.StatusInternalServerError)
+		return
+	}
+	write.WriteHeader(http.StatusOK)
+	WriteDataResponse(write, "Администратор получен", false, http.StatusOK, admin)
+	return
 }
