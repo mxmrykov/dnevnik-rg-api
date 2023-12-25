@@ -1,5 +1,9 @@
 package response
 
+import (
+	"dnevnik-rg.ru/internal/models"
+)
+
 type (
 	Response struct {
 		Data       interface{} `json:"data"`
@@ -7,13 +11,23 @@ type (
 		Message    string      `json:"message"`
 		IsError    bool        `json:"isError"`
 	}
-	Admin struct {
-		Key        int    `json:"key"`
-		Fio        string `json:"fio"`
-		DateReg    string `json:"date_reg"`
-		LogoUri    string `json:"logo_uri"`
+	Private struct {
 		CheckSum   string `json:"checksum"`
 		LastUpdate string `json:"last_update"`
 		Token      string `json:"token"`
+	}
+	Admin struct {
+		Key     int     `json:"key"`
+		Fio     string  `json:"fio"`
+		DateReg string  `json:"date_reg"`
+		LogoUri string  `json:"logo_uri"`
+		Private Private `json:"private"`
+	}
+	CoachFull struct {
+		models.Coach
+		Private Private `json:"private"`
+	}
+	Coach struct {
+		models.Coach
 	}
 )

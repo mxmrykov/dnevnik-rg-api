@@ -84,4 +84,23 @@ const (
 	FROM admins a LEFT JOIN passwords p on a.key = p.key WHERE a.key = $1;`
 	IsAdminExists = `
 	SELECT COUNT(*) FROM admins WHERE key = $1;`
+	CreateCoach = `
+	INSERT INTO coach (key, fio, date_reg, home_city, training_city, birthday, about, logo_uri, role) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+	`
+	GetCoach = `
+	SELECT * FROM coach WHERE key = $1;
+	`
+	GetCoachFull = `
+	SELECT coach.key, fio, date_reg, home_city, training_city, birthday, about, logo_uri, role, checksum, token, last_update
+    FROM coach
+	LEFT JOIN public.passwords p on coach.key = p.key WHERE coach.key = $1;
+	`
+	IsCoachExists = `
+	SELECT COUNT(*) FROM coach WHERE key = $1;`
+	IsAdminExistsByName = `
+	SELECT COUNT(*) FROM admins WHERE fio = $1;`
+	UpdateCoach = ``
+	DeleteCoach = `
+	DELETE FROM coach WHERE key = $1;
+	`
 )

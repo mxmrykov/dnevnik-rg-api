@@ -17,28 +17,8 @@ func (s *server) CreateAdmin(write http.ResponseWriter, request *http.Request) {
 		WriteResponse(write, "Неизвестный метод", true, http.StatusNotFound)
 		return
 	}
-	Auth, UserIdString := request.Header.Get("Authorization"), request.Header.Get("X-User-Id")
-	UserId, errConv := strconv.Atoi(UserIdString)
-	if errConv != nil {
-		write.WriteHeader(http.StatusInternalServerError)
-		WriteResponse(write, "Произошла ошибка на сервере", true, http.StatusInternalServerError)
-		return
-	}
-	jwtPayload, errGetJwtPayload := utils.GetJwtPayload(Auth)
-	if errGetJwtPayload != nil {
-		write.WriteHeader(http.StatusBadRequest)
-		WriteResponse(write, "Ошибка валидации", true, http.StatusBadRequest)
-		return
-	}
-	if jwtPayload.Key != UserId {
-		write.WriteHeader(http.StatusUnauthorized)
-		WriteResponse(write, "Ошибка авторизации", true, http.StatusUnauthorized)
-		return
-	}
-	if ok, errCheckAdmin := s.Repository.IsAdminExists(UserId); !ok || errCheckAdmin != nil {
-		log.Printf("err check admin: %v\n", errCheckAdmin)
-		write.WriteHeader(http.StatusForbidden)
-		WriteResponse(write, "Доступ запрещен", true, http.StatusForbidden)
+	ok, _ := s.checkExistence(write, request)
+	if !ok {
 		return
 	}
 	decoder := json.NewDecoder(request.Body)
@@ -81,9 +61,6 @@ func (s *server) CreateAdmin(write http.ResponseWriter, request *http.Request) {
 		log.Printf("error creating new password for admin: %v\n", errNewPassword)
 		if errClearingBrokenAdmin := s.Repository.DeleteAdmin(key); errClearingBrokenAdmin != nil {
 			log.Printf("error deleting new admin without password: %v\n", errClearingBrokenAdmin)
-			write.WriteHeader(http.StatusInternalServerError)
-			WriteResponse(write, "Ошибка создания администратора", true, http.StatusInternalServerError)
-			return
 		}
 		log.Println("new admin without password cleared")
 		write.WriteHeader(http.StatusInternalServerError)
@@ -108,28 +85,15 @@ func (s *server) GetAdmin(write http.ResponseWriter, request *http.Request) {
 		WriteResponse(write, "Неизвестный метод", true, http.StatusNotFound)
 		return
 	}
-	Auth, UserIdString := request.Header.Get("Authorization"), request.Header.Get("X-User-Id")
+	UserIdString := request.Header.Get("X-User-Id")
 	UserId, errConv := strconv.Atoi(UserIdString)
 	if errConv != nil {
 		write.WriteHeader(http.StatusInternalServerError)
 		WriteResponse(write, "Произошла ошибка на сервере", true, http.StatusInternalServerError)
 		return
 	}
-	jwtPayload, errGetJwtPayload := utils.GetJwtPayload(Auth)
-	if errGetJwtPayload != nil {
-		write.WriteHeader(http.StatusBadRequest)
-		WriteResponse(write, "Ошибка валидации", true, http.StatusBadRequest)
-		return
-	}
-	if jwtPayload.Key != UserId {
-		write.WriteHeader(http.StatusUnauthorized)
-		WriteResponse(write, "Ошибка авторизации", true, http.StatusUnauthorized)
-		return
-	}
-	if ok, errCheckAdmin := s.Repository.IsAdminExists(UserId); !ok || errCheckAdmin != nil {
-		log.Printf("err check admin: %v\n", errCheckAdmin)
-		write.WriteHeader(http.StatusForbidden)
-		WriteResponse(write, "Доступ запрещен", true, http.StatusForbidden)
+	ok, _ := s.checkExistence(write, request)
+	if !ok {
 		return
 	}
 	admin, errGetAdmin := s.Repository.GetAdmin(UserId)

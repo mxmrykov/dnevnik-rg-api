@@ -6,6 +6,13 @@ type (
 	NewAdmin struct {
 		Fio string `json:"fio"`
 	}
+	NewCoach struct {
+		Fio          string `json:"fio"`
+		HomeCity     string `json:"home_city"`
+		TrainingCity string `json:"training_city"`
+		Birthday     string `json:"birthday"`
+		About        string `json:"about"`
+	}
 	JwtPayload struct {
 		Key      int    `json:"key"`
 		CheckSum string `json:"check_sum"`

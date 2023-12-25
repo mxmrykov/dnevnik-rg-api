@@ -103,9 +103,9 @@ func (r *Repository) GetAdmin(key int) (response.Admin, error) {
 		&Admin.Fio,
 		&Admin.DateReg,
 		&Admin.LogoUri,
-		&Admin.CheckSum,
-		&Admin.LastUpdate,
-		&Admin.Token,
+		&Admin.Private.CheckSum,
+		&Admin.Private.LastUpdate,
+		&Admin.Private.Token,
 	)
 	return Admin, err
 }
@@ -120,4 +120,69 @@ func (r *Repository) IsAdminExists(key int) (bool, error) {
 		&count,
 	)
 	return count == 1, err
+}
+
+func (r *Repository) CreateCoach(coach models.Coach) error {
+	_, errNewCoach := r.Pool.Exec(
+		context.Background(),
+		postgres_requests.CreateCoach,
+		coach.Key, coach.Fio, coach.DateReg,
+		coach.HomeCity, coach.TrainingCity,
+		coach.Birthday, coach.About, coach.LogoUri,
+		"COACH",
+	)
+	return errNewCoach
+}
+
+func (r *Repository) GetCoach(key int) (response.Coach, error) {
+	var coach response.Coach
+	err := r.Pool.QueryRow(
+		context.Background(),
+		postgres_requests.GetCoach,
+		key,
+	).Scan(
+		nil,
+		&coach.Key,
+		&coach.Fio,
+		&coach.DateReg,
+		&coach.HomeCity,
+		&coach.TrainingCity,
+		&coach.Birthday,
+		&coach.About,
+		&coach.LogoUri,
+		&coach.Role,
+	)
+	return coach, err
+}
+
+func (r *Repository) GetCoachFull(key int) (response.CoachFull, error) {
+	var coach response.CoachFull
+	err := r.Pool.QueryRow(
+		context.Background(),
+		postgres_requests.GetCoachFull,
+		key,
+	).Scan(
+		&coach.Key,
+		&coach.Fio,
+		&coach.DateReg,
+		&coach.HomeCity,
+		&coach.TrainingCity,
+		&coach.Birthday,
+		&coach.About,
+		&coach.LogoUri,
+		&coach.Role,
+		&coach.Private.CheckSum,
+		&coach.Private.Token,
+		&coach.Private.LastUpdate,
+	)
+	return coach, err
+}
+
+func (r *Repository) DeleteCoach(key int) error {
+	_, err := r.Pool.Exec(
+		context.Background(),
+		postgres_requests.DeleteCoach,
+		key,
+	)
+	return err
 }
