@@ -30,4 +30,11 @@ type (
 	Coach struct {
 		models.Coach
 	}
+	PupilFull struct {
+		models.Pupil
+		Private Private `json:"private"`
+	}
+	Pupil struct {
+		models.Pupil
+	}
 )

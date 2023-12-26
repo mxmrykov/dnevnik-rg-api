@@ -28,7 +28,7 @@ func (s *server) CreateAdmin(write http.ResponseWriter, request *http.Request) {
 		WriteResponse(write, "Ошибка валидации", true, http.StatusBadRequest)
 		return
 	}
-	key := int(utils.GetUdid())
+	key := int(utils.GetKey())
 	checkSum := utils.NewPassword()
 	timeNow := time.Now().Format(time.RFC3339)
 	token, errCreateToken := utils.SetLongJwt(key, checkSum, timeNow)

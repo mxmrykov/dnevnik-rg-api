@@ -178,6 +178,14 @@ func (r *Repository) GetCoachFull(key int) (response.CoachFull, error) {
 	return coach, err
 }
 
+func (r *Repository) UpdateCoach(sql string) error {
+	_, err := r.Pool.Exec(
+		context.Background(),
+		sql,
+	)
+	return err
+}
+
 func (r *Repository) DeleteCoach(key int) error {
 	_, err := r.Pool.Exec(
 		context.Background(),
@@ -185,4 +193,76 @@ func (r *Repository) DeleteCoach(key int) error {
 		key,
 	)
 	return err
+}
+
+func (r *Repository) IsCoachExists(key int) (bool, error) {
+	var count int
+	err := r.Pool.QueryRow(
+		context.Background(),
+		postgres_requests.IsCoachExists,
+		key,
+	).Scan(
+		&count,
+	)
+	return count == 1, err
+}
+
+func (r *Repository) CreatePupil(Pupil models.Pupil) error {
+	_, errNewCoach := r.Pool.Exec(
+		context.Background(),
+		postgres_requests.CreatePupil,
+		Pupil.Key, Pupil.Fio, Pupil.DateReg,
+		Pupil.Coach, Pupil.HomeCity, Pupil.TrainingCity,
+		Pupil.Birthday, Pupil.About, Pupil.CoachReview,
+		Pupil.LogoUri, "PUPIL",
+	)
+	return errNewCoach
+}
+
+func (r *Repository) GetPupilFull(key int) (response.PupilFull, error) {
+	var pupil response.PupilFull
+	err := r.Pool.QueryRow(
+		context.Background(),
+		postgres_requests.GetPupilFull,
+		key,
+	).Scan(
+		&pupil.Key,
+		&pupil.Fio,
+		&pupil.DateReg,
+		&pupil.Coach,
+		&pupil.HomeCity,
+		&pupil.TrainingCity,
+		&pupil.Birthday,
+		&pupil.About,
+		&pupil.CoachReview,
+		&pupil.LogoUri,
+		&pupil.Role,
+		&pupil.Private.CheckSum,
+		&pupil.Private.Token,
+		&pupil.Private.LastUpdate,
+	)
+	return pupil, err
+}
+
+func (r *Repository) GetPupil(key int) (response.Pupil, error) {
+	var pupil response.Pupil
+	err := r.Pool.QueryRow(
+		context.Background(),
+		postgres_requests.GetPupil,
+		key,
+	).Scan(
+		nil,
+		&pupil.Key,
+		&pupil.Fio,
+		&pupil.DateReg,
+		&pupil.Coach,
+		&pupil.HomeCity,
+		&pupil.TrainingCity,
+		&pupil.Birthday,
+		&pupil.About,
+		&pupil.CoachReview,
+		&pupil.LogoUri,
+		&pupil.Role,
+	)
+	return pupil, err
 }

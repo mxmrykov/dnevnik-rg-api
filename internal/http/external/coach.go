@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"reflect"
 	"strconv"
 	"time"
 )
@@ -28,7 +29,7 @@ func (s *server) CreateCoach(write http.ResponseWriter, request *http.Request) {
 		WriteResponse(write, "Ошибка валидации", true, http.StatusBadRequest)
 		return
 	}
-	key := int(utils.GetUdid())
+	key := int(utils.GetKey())
 	checkSum := utils.NewPassword()
 	timeNow := time.Now().Format(time.RFC3339)
 	token, errCreateToken := utils.SetLongJwt(key, checkSum, timeNow)
@@ -158,6 +159,60 @@ func (s *server) UpdateCoach(write http.ResponseWriter, request *http.Request) {
 	if !ok {
 		return
 	}
+	decoder := json.NewDecoder(request.Body)
+	var decoded requests.UpdateCoach
+	if decodingBodyErr := decoder.Decode(&decoded); decodingBodyErr != nil {
+		write.WriteHeader(http.StatusBadRequest)
+		WriteResponse(write, "Ошибка валидации", true, http.StatusBadRequest)
+		return
+	}
+	if decoded.Birthday != "" {
+		bday, errBday := time.Parse("2006-01-02", decoded.Birthday)
+		if errBday != nil {
+			log.Printf("invalid bday format: %v\n", errBday)
+			write.WriteHeader(http.StatusBadRequest)
+			WriteResponse(write, "Неверный формат данных", true, http.StatusBadRequest)
+			return
+		}
+		decoded.Birthday = bday.Format(time.RFC3339)
+	}
+	reflectBody := reflect.ValueOf(decoded)
+	var (
+		params []string
+		values []string
+	)
+	for i := 0; i < reflectBody.NumField(); i += 1 {
+		if reflectBody.Field(i).Interface() != "" {
+			key := reflectBody.Type().Field(i).Tag.Get("json")
+			keyBaseName := reflectBody.Type().Field(i).Name
+			value := reflectBody.FieldByName(keyBaseName).Interface().(string)
+			params = append(params, key)
+			values = append(values, value)
+		}
+	}
+	if len(params) == 0 || len(params) != len(values) {
+		write.WriteHeader(http.StatusBadRequest)
+		WriteResponse(write, "Не указаны данные для обновления", true, http.StatusBadRequest)
+		return
+	}
+	coachIdString := request.URL.Query().Get("coachId")
+	coachId, errConvCoach := strconv.Atoi(coachIdString)
+	if errConvCoach != nil {
+		write.WriteHeader(http.StatusInternalServerError)
+		WriteResponse(write, "Произошла ошибка на сервере", true, http.StatusInternalServerError)
+		return
+	}
+	sql := utils.GenerateUpdCoachSql(coachId, params, values)
+	errGetCoach := s.Repository.UpdateCoach(sql)
+	if errGetCoach != nil {
+		log.Printf("error returns new coach data: %v\n", errGetCoach)
+		write.WriteHeader(http.StatusInternalServerError)
+		WriteResponse(write, "Ошибка обновления тренера", true, http.StatusInternalServerError)
+		return
+	}
+	write.WriteHeader(http.StatusOK)
+	WriteResponse(write, "Тренер обновлен", false, http.StatusOK)
+	return
 }
 
 func (s *server) DeleteCoach(write http.ResponseWriter, request *http.Request) {

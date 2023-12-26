@@ -1,9 +1,11 @@
 package utils
 
 import (
+	"bytes"
 	"crypto/md5"
 	requests "dnevnik-rg.ru/internal/models/request"
 	"encoding/hex"
+	"fmt"
 	"github.com/golang-jwt/jwt"
 	"math/rand"
 	"os"
@@ -17,7 +19,7 @@ func NewPassword() string {
 	return checkSum[:7]
 }
 
-func GetUdid() int64 {
+func GetKey() int64 {
 	return time.Now().Unix()
 }
 
@@ -62,4 +64,17 @@ func GetJwtPayload(token string) (*requests.JwtPayload, error) {
 	} else {
 		return &requests.JwtPayload{}, errParseToken
 	}
+}
+
+func GenerateUpdCoachSql(key int, newParams []string, newValues []string) string {
+	var buf bytes.Buffer
+	buf.WriteString("UPDATE coach SET")
+	for i, param := range newParams {
+		buf.WriteString(fmt.Sprintf(" %s='%s'", param, newValues[i]))
+		if i < len(newValues)-1 {
+			buf.WriteString(",")
+		}
+	}
+	buf.WriteString(fmt.Sprintf(" WHERE key=%d", key))
+	return buf.String()
 }

@@ -99,8 +99,25 @@ const (
 	SELECT COUNT(*) FROM coach WHERE key = $1;`
 	IsAdminExistsByName = `
 	SELECT COUNT(*) FROM admins WHERE fio = $1;`
-	UpdateCoach = ``
 	DeleteCoach = `
 	DELETE FROM coach WHERE key = $1;
+	`
+	CreatePupil = `
+	INSERT INTO pupil (key, fio, date_reg, coach, home_city, training_city, birthday, about, coach_review, logo_uri, role) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+	`
+	GetPupil = `
+	SELECT * FROM pupil WHERE key = $1;
+	`
+	GetPupilFull = `
+	SELECT pupil.key, fio, date_reg, coach, home_city, training_city, birthday, about, coach_review, logo_uri, role, checksum, token, last_update
+    FROM pupil
+	LEFT JOIN public.passwords p on pupil.key = p.key WHERE pupil.key = $1;
+	`
+	IsPupilExists = `
+	SELECT COUNT(*) FROM pupil WHERE key = $1;`
+	IsPupilExistsByName = `
+	SELECT COUNT(*) FROM pupil WHERE fio = $1;`
+	DeletePupil = `
+	DELETE FROM pupil WHERE key = $1;
 	`
 )

@@ -84,3 +84,14 @@ func CheckCoachId(next http.Handler) http.Handler {
 		next.ServeHTTP(writer, request)
 	})
 }
+
+func CheckPupilId(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		if request.URL.Query().Get("pupilId") == "" {
+			writer.WriteHeader(http.StatusBadRequest)
+			WriteResponse(writer, "Ошибка валидации", true, http.StatusBadRequest)
+			return
+		}
+		next.ServeHTTP(writer, request)
+	})
+}

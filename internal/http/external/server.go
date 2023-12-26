@@ -35,4 +35,10 @@ const (
 	GetCoachFullRoute = "/users/coach/get/full"
 	UpdateCoachRoute  = "/users/coach/update"
 	DeleteCoachRoute  = "/users/coach/delete"
+
+	CreatePupilRoute  = "/users/pupil/create"
+	GetPupilRoute     = "/users/pupil/get"
+	GetPupilFullRoute = "/users/pupil/get/full"
+	UpdatePupilRoute  = "/users/pupil/update"
+	DeletePupilRoute  = "/users/pupil/delete"
 )
