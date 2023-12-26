@@ -66,9 +66,9 @@ func GetJwtPayload(token string) (*requests.JwtPayload, error) {
 	}
 }
 
-func GenerateUpdCoachSql(key int, newParams []string, newValues []string) string {
+func GenerateUpdateSql(table string, key int, newParams []string, newValues []string) string {
 	var buf bytes.Buffer
-	buf.WriteString("UPDATE coach SET")
+	buf.WriteString(fmt.Sprintf("UPDATE %s SET", table))
 	for i, param := range newParams {
 		buf.WriteString(fmt.Sprintf(" %s='%s'", param, newValues[i]))
 		if i < len(newValues)-1 {

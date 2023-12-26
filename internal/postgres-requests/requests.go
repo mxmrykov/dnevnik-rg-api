@@ -120,4 +120,13 @@ const (
 	DeletePupil = `
 	DELETE FROM pupil WHERE key = $1;
 	`
+	GetAllPupils = `
+	SELECT * FROM pupil
+	`
+	GetAllCoaches = `
+	SELECT * FROM coach
+	`
+	GetAllAdmins = `
+	SELECT * FROM admins
+	`
 )

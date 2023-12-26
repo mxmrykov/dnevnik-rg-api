@@ -86,6 +86,7 @@ func (s *server) CreateCoach(write http.ResponseWriter, request *http.Request) {
 		WriteResponse(write, "Не удалось получить созданного тренера", true, http.StatusInternalServerError)
 		return
 	}
+	s.CoachesCache.WriteCoach(newCoach)
 	write.WriteHeader(http.StatusOK)
 	WriteDataResponse(write, "Администратор зарегистрирован", false, http.StatusOK, coach)
 	return
@@ -106,6 +107,12 @@ func (s *server) GetCoach(write http.ResponseWriter, request *http.Request) {
 	if errConvCoach != nil {
 		write.WriteHeader(http.StatusInternalServerError)
 		WriteResponse(write, "Произошла ошибка на сервере", true, http.StatusInternalServerError)
+		return
+	}
+	if p, ok_ := s.CoachesCache.ReadById(coachId); ok_ {
+		log.Printf("coach loaded from cache: %d", (*p).Key)
+		write.WriteHeader(http.StatusOK)
+		WriteDataResponse(write, "Тренер получен", false, http.StatusOK, *p)
 		return
 	}
 	coach, errGetCoach := s.Repository.GetCoach(coachId)
@@ -202,7 +209,7 @@ func (s *server) UpdateCoach(write http.ResponseWriter, request *http.Request) {
 		WriteResponse(write, "Произошла ошибка на сервере", true, http.StatusInternalServerError)
 		return
 	}
-	sql := utils.GenerateUpdCoachSql(coachId, params, values)
+	sql := utils.GenerateUpdateSql("coach", coachId, params, values)
 	errGetCoach := s.Repository.UpdateCoach(sql)
 	if errGetCoach != nil {
 		log.Printf("error returns new coach data: %v\n", errGetCoach)

@@ -32,7 +32,7 @@ func (s *server) checkCoachExistence(write http.ResponseWriter, request *http.Re
 		return false, errConv
 	}
 	if ok, errCheckCoach := s.Repository.IsCoachExists(UserId); !ok || errCheckCoach != nil {
-		log.Printf("err check admin: %v\n", errCheckCoach)
+		log.Printf("err check coach: %v\n", errCheckCoach)
 		write.WriteHeader(http.StatusForbidden)
 		WriteResponse(write, "Доступ запрещен", true, http.StatusForbidden)
 		return false, errCheckCoach

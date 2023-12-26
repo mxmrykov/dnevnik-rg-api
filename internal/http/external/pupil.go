@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -95,6 +96,7 @@ func (s *server) CreatePupil(write http.ResponseWriter, request *http.Request) {
 		WriteResponse(write, "Не удалось получить созданную ученицу", true, http.StatusInternalServerError)
 		return
 	}
+	s.PupilsCache.WritePupil(newPupil)
 	write.WriteHeader(http.StatusOK)
 	WriteDataResponse(write, "Администратор зарегистрирован", false, http.StatusOK, pupil)
 	return
@@ -117,6 +119,12 @@ func (s *server) GetPupil(write http.ResponseWriter, request *http.Request) {
 	if errConvCoach != nil {
 		write.WriteHeader(http.StatusInternalServerError)
 		WriteResponse(write, "Произошла ошибка на сервере", true, http.StatusInternalServerError)
+		return
+	}
+	if p, ok := s.PupilsCache.ReadById(pupilId); ok {
+		log.Printf("pupil loaded from cache: %d", (*p).Key)
+		write.WriteHeader(http.StatusOK)
+		WriteDataResponse(write, "Ученица получена", false, http.StatusOK, *p)
 		return
 	}
 	pupil, errGetPupil := s.Repository.GetPupil(pupilId)
@@ -176,12 +184,58 @@ func (s *server) UpdatePupil(write http.ResponseWriter, request *http.Request) {
 		}
 	}
 	decoder := json.NewDecoder(request.Body)
-	var decoded requests.NewPupil
+	var decoded requests.UpdatePupil
 	if decodingBodyErr := decoder.Decode(&decoded); decodingBodyErr != nil {
 		write.WriteHeader(http.StatusBadRequest)
 		WriteResponse(write, "Ошибка валидации", true, http.StatusBadRequest)
 		return
 	}
+	if decoded.Birthday != "" {
+		bday, errBday := time.Parse("2006-01-02", decoded.Birthday)
+		if errBday != nil {
+			log.Printf("invalid bday format: %v\n", errBday)
+			write.WriteHeader(http.StatusBadRequest)
+			WriteResponse(write, "Неверный формат данных", true, http.StatusBadRequest)
+			return
+		}
+		decoded.Birthday = bday.Format(time.RFC3339)
+	}
+	reflectBody := reflect.ValueOf(decoded)
+	var (
+		params []string
+		values []string
+	)
+	for i := 0; i < reflectBody.NumField(); i += 1 {
+		if reflectBody.Field(i).Interface() != "" {
+			key := reflectBody.Type().Field(i).Tag.Get("json")
+			keyBaseName := reflectBody.Type().Field(i).Name
+			value := reflectBody.FieldByName(keyBaseName).Interface().(string)
+			params = append(params, key)
+			values = append(values, value)
+		}
+	}
+	if len(params) == 0 || len(params) != len(values) {
+		write.WriteHeader(http.StatusBadRequest)
+		WriteResponse(write, "Не указаны данные для обновления", true, http.StatusBadRequest)
+		return
+	}
+	pupilIdInt, errConvPupil := strconv.Atoi(pupilId)
+	if errConvPupil != nil {
+		write.WriteHeader(http.StatusInternalServerError)
+		WriteResponse(write, "Произошла ошибка на сервере", true, http.StatusInternalServerError)
+		return
+	}
+	sql := utils.GenerateUpdateSql("pupil", pupilIdInt, params, values)
+	errUpdatePupil := s.Repository.UpdatePupil(sql)
+	if errUpdatePupil != nil {
+		log.Printf("error returns new coach data: %v\n", errUpdatePupil)
+		write.WriteHeader(http.StatusInternalServerError)
+		WriteResponse(write, "Ошибка обновления ученицы", true, http.StatusInternalServerError)
+		return
+	}
+	write.WriteHeader(http.StatusOK)
+	WriteResponse(write, "Ученица обновлена", false, http.StatusOK)
+	return
 }
 
 func (s *server) DeletePupil(write http.ResponseWriter, request *http.Request) {
@@ -190,11 +244,26 @@ func (s *server) DeletePupil(write http.ResponseWriter, request *http.Request) {
 		WriteResponse(write, "Неизвестный метод", true, http.StatusNotFound)
 		return
 	}
-	pupilId, userId := request.URL.Query().Get("pupilId"), request.Header.Get("X-User-Id")
-	if !strings.EqualFold(pupilId, userId) {
-		ok, _ := s.checkCoachExistence(write, request)
-		if !ok {
-			return
-		}
+	pupilIdString := request.URL.Query().Get("pupilId")
+	ok, _ := s.checkCoachExistence(write, request)
+	if !ok {
+		return
 	}
+	pupilId, errConvCoach := strconv.Atoi(pupilIdString)
+	if errConvCoach != nil {
+		write.WriteHeader(http.StatusInternalServerError)
+		WriteResponse(write, "Произошла ошибка на сервере", true, http.StatusInternalServerError)
+		return
+	}
+	errDeletePupil := s.Repository.DeletePupil(pupilId)
+	if errDeletePupil != nil {
+		log.Printf("error returns delete pupil: %v\n", errDeletePupil)
+		write.WriteHeader(http.StatusNotFound)
+		WriteResponse(write, "Не удалось удалить ученицу", true, http.StatusNotFound)
+		return
+	}
+	s.PupilsCache.RemovePupil(pupilId)
+	write.WriteHeader(http.StatusOK)
+	WriteResponse(write, "Ученица удалена", false, http.StatusOK)
+	return
 }

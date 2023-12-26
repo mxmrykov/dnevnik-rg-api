@@ -34,4 +34,12 @@ type (
 		Birthday     string `json:"birthday"`
 		About        string `json:"about"`
 	}
+	UpdatePupil struct {
+		Fio          string `json:"fio"`
+		HomeCity     string `json:"home_city"`
+		TrainingCity string `json:"training_city"`
+		Birthday     string `json:"birthday"`
+		About        string `json:"about"`
+		CoachReview  string `json:"coach_review"`
+	}
 )

@@ -12,20 +12,41 @@ type Cache struct {
 }
 
 type Pupils struct {
-	Pupils map[int]models.Pupil
-	mx     *sync.Mutex
+	Pupils map[int]*models.Pupil
+	Mx     *sync.RWMutex
 }
 
 type Coaches struct {
-	Pupils map[int]models.Coach
-	mx     *sync.Mutex
+	Coaches map[int]*models.Coach
+	Mx      *sync.RWMutex
 }
 
 type Admins struct {
-	Pupils map[int]models.Admin
-	mx     *sync.Mutex
+	Admins map[int]*models.Admin
+	Mx     *sync.RWMutex
 }
 
 func NewCache() *Cache {
 	return &Cache{}
+}
+
+func (c *Cache) NewPupilsCache() IPupils {
+	return &Pupils{
+		Pupils: make(map[int]*models.Pupil),
+		Mx:     &sync.RWMutex{},
+	}
+}
+
+func (c *Cache) NewAdminsCache() IAdmin {
+	return &Admins{
+		Admins: make(map[int]*models.Admin),
+		Mx:     &sync.RWMutex{},
+	}
+}
+
+func (c *Cache) NewCoachesCache() ICoaches {
+	return &Coaches{
+		Coaches: make(map[int]*models.Coach),
+		Mx:      &sync.RWMutex{},
+	}
 }

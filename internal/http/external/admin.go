@@ -96,6 +96,12 @@ func (s *server) GetAdmin(write http.ResponseWriter, request *http.Request) {
 	if !ok {
 		return
 	}
+	if p, ok_ := s.PupilsCache.ReadById(UserId); ok_ {
+		log.Printf("admin loaded from cache: %d", (*p).Key)
+		write.WriteHeader(http.StatusOK)
+		WriteDataResponse(write, "Ученица получена", false, http.StatusOK, *p)
+		return
+	}
 	admin, errGetAdmin := s.Repository.GetAdmin(UserId)
 	if errGetAdmin != nil {
 		log.Printf("cannot check admin: %v\n", errGetAdmin)

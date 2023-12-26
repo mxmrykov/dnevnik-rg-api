@@ -31,6 +31,5 @@ func App(appConfig *config.Config) {
 		log.Printf("error initializing classes table: %v\n", errInitAdmins)
 	}
 	log.Println("db tables initialized")
-	log.Println("starting web server...")
-	http.NewHttp(&appConfig.Http, repos)
+	http.NewHttp(&appConfig.Http, repos, true)
 }

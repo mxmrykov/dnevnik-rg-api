@@ -6,6 +6,7 @@ import (
 	"dnevnik-rg.ru/internal/models/response"
 	postgres_requests "dnevnik-rg.ru/internal/postgres-requests"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"log"
 )
 
 type Repository struct {
@@ -54,6 +55,94 @@ func (r *Repository) InitTableAdmins() error {
 		postgres_requests.InitTableAdmins,
 	)
 	return errInitTable
+}
+
+func (r *Repository) GetAllPupils() ([]models.Pupil, error) {
+	var pupils []models.Pupil
+	rows, err := r.Pool.Query(
+		context.Background(),
+		postgres_requests.GetAllPupils,
+	)
+	for rows.Next() {
+		var pupil models.Pupil
+		if errScan := rows.Scan(
+			nil,
+			&pupil.Key,
+			&pupil.Fio,
+			&pupil.DateReg,
+			&pupil.Coach,
+			&pupil.HomeCity,
+			&pupil.TrainingCity,
+			&pupil.Birthday,
+			&pupil.About,
+			&pupil.CoachReview,
+			&pupil.LogoUri,
+			&pupil.Role,
+		); errScan != nil {
+			log.Println("error while scanning recovery pupils from DB: ", errScan)
+		}
+		pupils = append(pupils, pupil)
+	}
+	if err != nil {
+		return nil, err
+	}
+	return pupils, nil
+}
+
+func (r *Repository) GetAllCoaches() ([]models.Coach, error) {
+	var coaches []models.Coach
+	rows, err := r.Pool.Query(
+		context.Background(),
+		postgres_requests.GetAllCoaches,
+	)
+	for rows.Next() {
+		var coach models.Coach
+		if errScan := rows.Scan(
+			nil,
+			&coach.Key,
+			&coach.Fio,
+			&coach.DateReg,
+			&coach.HomeCity,
+			&coach.TrainingCity,
+			&coach.Birthday,
+			&coach.About,
+			&coach.LogoUri,
+			&coach.Role,
+		); errScan != nil {
+			log.Println("error while scanning recovery coaches from DB: ", errScan)
+		}
+		coaches = append(coaches, coach)
+	}
+	if err != nil {
+		return nil, err
+	}
+	return coaches, nil
+}
+
+func (r *Repository) GetAllAdmins() ([]models.Admin, error) {
+	var admins []models.Admin
+	rows, err := r.Pool.Query(
+		context.Background(),
+		postgres_requests.GetAllAdmins,
+	)
+	for rows.Next() {
+		var admin models.Admin
+		if errScan := rows.Scan(
+			nil,
+			&admin.Key,
+			&admin.Fio,
+			&admin.DateReg,
+			&admin.LogoUri,
+			&admin.Role,
+		); errScan != nil {
+			log.Println("error while scanning recovery admins from DB: ", errScan)
+		}
+		admins = append(admins, admin)
+	}
+	if err != nil {
+		return nil, err
+	}
+	return admins, nil
 }
 
 func (r *Repository) NewAdmin(admin models.Admin) error {
@@ -265,4 +354,21 @@ func (r *Repository) GetPupil(key int) (response.Pupil, error) {
 		&pupil.Role,
 	)
 	return pupil, err
+}
+
+func (r *Repository) UpdatePupil(sql string) error {
+	_, err := r.Pool.Exec(
+		context.Background(),
+		sql,
+	)
+	return err
+}
+
+func (r *Repository) DeletePupil(key int) error {
+	_, err := r.Pool.Exec(
+		context.Background(),
+		postgres_requests.DeletePupil,
+		key,
+	)
+	return err
 }

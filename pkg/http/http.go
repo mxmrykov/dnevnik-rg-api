@@ -8,9 +8,35 @@ import (
 	"net/http"
 )
 
-func NewHttp(configHttp *config.Http, repo *repository.Repository) {
+func NewHttp(configHttp *config.Http, repo *repository.Repository, recoveryRequired bool) {
 	mux := http.NewServeMux()
 	server := external.NewServer(repo)
+
+	go func() {
+		if !recoveryRequired {
+			return
+		}
+		log.Println("recovery is required, starting...")
+		pupils, errRecoveryPupils := repo.GetAllPupils()
+		if errRecoveryPupils != nil {
+			log.Println("error recovering pupils from DB:", errRecoveryPupils)
+		}
+		server.RecoverPupils(pupils)
+		coaches, errRecoveryCoaches := repo.GetAllCoaches()
+		if errRecoveryCoaches != nil {
+			log.Println("error recovering coaches from DB:", errRecoveryCoaches)
+		}
+		server.RecoverCoaches(coaches)
+		admins, errRecoveryAdmins := repo.GetAllAdmins()
+		if errRecoveryAdmins != nil {
+			log.Println("error recovering admins from DB:", errRecoveryAdmins)
+		}
+		server.RecoverAdmins(admins)
+		log.Println("recovery is overed")
+		return
+	}()
+
+	log.Println("starting web server...")
 
 	//Group Admin
 	mux.HandleFunc(external.GroupV1+external.CreateAdminRoute, server.CreateAdmin)
