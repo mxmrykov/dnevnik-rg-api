@@ -42,4 +42,7 @@ type (
 		About        string `json:"about"`
 		CoachReview  string `json:"coach_review"`
 	}
+	Auth struct {
+		Checksum string `json:"checksum"`
+	}
 )

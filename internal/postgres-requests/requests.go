@@ -129,4 +129,19 @@ const (
 	GetAllAdmins = `
 	SELECT * FROM admins
 	`
+	Auth = `
+	SELECT key, token, 'ADMIN' AS role
+	FROM passwords WHERE key = $1 AND checksum = $2
+	AND EXISTS (SELECT * FROM admins WHERE admins.key = passwords.key)
+	UNION
+	SELECT key, token, 'COACH' AS role
+	FROM passwords
+	WHERE key = $1 AND checksum = $2
+	AND EXISTS (SELECT * FROM coach WHERE coach.key = passwords.key)
+	UNION
+	SELECT key, token, 'PUPIL' AS role
+	FROM passwords
+	WHERE key = $1 AND checksum = $2
+	AND EXISTS (SELECT * FROM pupil WHERE pupil.key = passwords.key);
+	`
 )

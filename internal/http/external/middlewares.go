@@ -20,6 +20,10 @@ func Logger(next http.Handler) http.Handler {
 
 func CheckPermission(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		if request.URL.String() == GroupV1+AuthRoute {
+			next.ServeHTTP(writer, request)
+			return
+		}
 		xUserId := request.Header.Get("X-User-Id")
 		Auth := request.Header.Get("Authorization")
 		if len(xUserId) == 0 || len(Auth) == 0 {
@@ -90,6 +94,19 @@ func CheckPupilId(next http.Handler) http.Handler {
 		if request.URL.Query().Get("pupilId") == "" {
 			writer.WriteHeader(http.StatusBadRequest)
 			WriteResponse(writer, "Ошибка валидации", true, http.StatusBadRequest)
+			return
+		}
+		next.ServeHTTP(writer, request)
+	})
+}
+
+func SetCors(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		writer.Header().Set("Access-Control-Allow-Origin", "*")
+		writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, X-User-Id, Authorization")
+		writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		if request.Method == "OPTIONS" {
+			writer.WriteHeader(http.StatusOK)
 			return
 		}
 		next.ServeHTTP(writer, request)

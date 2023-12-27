@@ -68,8 +68,12 @@ func NewHttp(configHttp *config.Http, repo *repository.Repository, recoveryRequi
 	)
 	mux.HandleFunc(external.GroupV1+external.DeletePupilRoute, server.DeletePupil)
 
+	//Group auth
+	mux.HandleFunc(external.GroupV1+external.AuthRoute, server.Authorize)
+
 	handler := external.CheckPermission(mux)
 	handler = external.Logger(handler)
+	handler = external.SetCors(handler)
 	log.Println("server started on", configHttp.Host+":"+configHttp.Port)
 	log.Fatal(http.ListenAndServe(configHttp.Host+":"+configHttp.Port, handler))
 }

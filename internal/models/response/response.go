@@ -37,4 +37,9 @@ type (
 	Pupil struct {
 		models.Pupil
 	}
+	Auth struct {
+		Key   int    `json:"key"`
+		Token string `json:"token"`
+		Role  string `json:"role"`
+	}
 )

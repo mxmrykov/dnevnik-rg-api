@@ -20,6 +20,7 @@ type Server interface {
 	GetPupilFull(write http.ResponseWriter, request *http.Request)
 	UpdatePupil(write http.ResponseWriter, request *http.Request)
 	DeletePupil(write http.ResponseWriter, request *http.Request)
+	Authorize(write http.ResponseWriter, request *http.Request)
 	RecoverPupils(pupils []models.Pupil)
 	RecoverCoaches(coaches []models.Coach)
 	RecoverAdmins(admins []models.Admin)
@@ -49,6 +50,8 @@ const (
 	GetPupilFullRoute = "/users/pupil/get/full"
 	UpdatePupilRoute  = "/users/pupil/update"
 	DeletePupilRoute  = "/users/pupil/delete"
+
+	AuthRoute = "/auth"
 )
 
 func NewServer(repo *repository.Repository) Server {

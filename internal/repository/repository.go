@@ -372,3 +372,17 @@ func (r *Repository) DeletePupil(key int) error {
 	)
 	return err
 }
+
+func (r *Repository) Authorize(key int, checksum string) (response.Auth, error) {
+	var auth response.Auth
+	err := r.Pool.QueryRow(
+		context.Background(),
+		postgres_requests.Auth,
+		key, checksum,
+	).Scan(
+		&auth.Key,
+		&auth.Token,
+		&auth.Role,
+	)
+	return auth, err
+}
