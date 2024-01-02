@@ -67,6 +67,7 @@ func (s *server) CreateAdmin(write http.ResponseWriter, request *http.Request) {
 		WriteResponse(write, "Ошибка создания администратора", true, http.StatusInternalServerError)
 		return
 	}
+	s.AdminsCache.WriteAdmin(newAdmin)
 	admin, errGetAdmin := s.Repository.GetAdmin(key)
 	if errGetAdmin != nil {
 		log.Printf("error returns new admin data: %v\n", errGetAdmin)
@@ -96,7 +97,7 @@ func (s *server) GetAdmin(write http.ResponseWriter, request *http.Request) {
 	if !ok {
 		return
 	}
-	if p, ok_ := s.PupilsCache.ReadById(UserId); ok_ {
+	if p, ok_ := s.AdminsCache.ReadById(UserId); ok_ {
 		log.Printf("admin loaded from cache: %d", (*p).Key)
 		write.WriteHeader(http.StatusOK)
 		WriteDataResponse(write, "Ученица получена", false, http.StatusOK, *p)
@@ -111,5 +112,35 @@ func (s *server) GetAdmin(write http.ResponseWriter, request *http.Request) {
 	}
 	write.WriteHeader(http.StatusOK)
 	WriteDataResponse(write, "Администратор получен", false, http.StatusOK, admin)
+	return
+}
+
+func (s *server) GetAllAdminsExcept(write http.ResponseWriter, request *http.Request) {
+	//GetAllAdminsExcept
+	if request.Method != http.MethodGet {
+		write.WriteHeader(http.StatusNotFound)
+		WriteResponse(write, "Неизвестный метод", true, http.StatusNotFound)
+		return
+	}
+	UserIdString := request.Header.Get("X-User-Id")
+	UserId, errConv := strconv.Atoi(UserIdString)
+	if errConv != nil {
+		write.WriteHeader(http.StatusInternalServerError)
+		WriteResponse(write, "Произошла ошибка на сервере", true, http.StatusInternalServerError)
+		return
+	}
+	ok, _ := s.checkExistence(write, request)
+	if !ok {
+		return
+	}
+	admins, errGetAdmin := s.Repository.GetAllAdminsExcept(UserId)
+	if errGetAdmin != nil {
+		log.Printf("cannot list admins: %v\n", errGetAdmin)
+		write.WriteHeader(http.StatusInternalServerError)
+		WriteResponse(write, "Ошибка сервера", true, http.StatusInternalServerError)
+		return
+	}
+	write.WriteHeader(http.StatusOK)
+	WriteDataResponse(write, "Администратор получен", false, http.StatusOK, admins)
 	return
 }

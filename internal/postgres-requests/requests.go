@@ -80,8 +80,15 @@ const (
 	`
 	GetAdmin = `
 	SELECT
-    a.key, a.fio, a.date_reg, a.logo_uri, p.checksum, p.last_update, p.token
+    a.key, a.fio, a.date_reg, a.logo_uri, a.role, p.checksum, p.last_update, p.token
 	FROM admins a LEFT JOIN passwords p on a.key = p.key WHERE a.key = $1;`
+	GetAdminFull = `
+	SELECT
+    a.key, a.fio, a.date_reg, a.logo_uri, a.role, p.checksum, p.last_update, p.token
+	FROM admins a LEFT JOIN passwords p on a.key = p.key WHERE a.key = $1;`
+	GetAllAdminsExcept = `
+	SELECT key, fio, logo_uri FROM admins WHERE key != $1; 
+	`
 	IsAdminExists = `
 	SELECT COUNT(*) FROM admins WHERE key = $1;`
 	CreateCoach = `

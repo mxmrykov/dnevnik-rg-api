@@ -145,6 +145,30 @@ func (r *Repository) GetAllAdmins() ([]models.Admin, error) {
 	return admins, nil
 }
 
+func (r *Repository) GetAllAdminsExcept(key int) ([]response.AdminList, error) {
+	var admins []response.AdminList
+	rows, err := r.Pool.Query(
+		context.Background(),
+		postgres_requests.GetAllAdminsExcept,
+		key,
+	)
+	for rows.Next() {
+		var admin response.AdminList
+		if errScan := rows.Scan(
+			&admin.Key,
+			&admin.Fio,
+			&admin.LogoUri,
+		); errScan != nil {
+			log.Println("error while scanning list admins from db: ", errScan)
+		}
+		admins = append(admins, admin)
+	}
+	if err != nil {
+		return nil, err
+	}
+	return admins, nil
+}
+
 func (r *Repository) NewAdmin(admin models.Admin) error {
 	_, errNewAdmin := r.Pool.Exec(
 		context.Background(),
@@ -192,6 +216,7 @@ func (r *Repository) GetAdmin(key int) (response.Admin, error) {
 		&Admin.Fio,
 		&Admin.DateReg,
 		&Admin.LogoUri,
+		&Admin.Role,
 		&Admin.Private.CheckSum,
 		&Admin.Private.LastUpdate,
 		&Admin.Private.Token,

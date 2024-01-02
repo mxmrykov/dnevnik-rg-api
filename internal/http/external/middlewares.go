@@ -20,7 +20,10 @@ func Logger(next http.Handler) http.Handler {
 
 func CheckPermission(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-		if request.URL.String() == GroupV1+AuthRoute {
+		switch request.URL.String() {
+		case
+			GroupV1 + AuthRoute,
+			GroupV1 + CacheGetAllRoute:
 			next.ServeHTTP(writer, request)
 			return
 		}

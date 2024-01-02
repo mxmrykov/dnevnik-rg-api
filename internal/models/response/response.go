@@ -17,11 +17,13 @@ type (
 		Token      string `json:"token"`
 	}
 	Admin struct {
-		Key     int     `json:"key"`
-		Fio     string  `json:"fio"`
-		DateReg string  `json:"date_reg"`
-		LogoUri string  `json:"logo_uri"`
+		models.General
 		Private Private `json:"private"`
+	}
+	AdminList struct {
+		Key     int    `json:"key"`
+		Fio     string `json:"fio"`
+		LogoUri string `json:"logo_uri"`
 	}
 	CoachFull struct {
 		models.Coach

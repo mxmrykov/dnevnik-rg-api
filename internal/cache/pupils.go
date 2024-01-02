@@ -41,6 +41,7 @@ func (p *Pupils) WritingSession(list []models.Pupil) {
 	p.Mx.Lock()
 	defer p.Mx.Unlock()
 	for _, pupil := range list {
-		p.Pupils[pupil.Key] = &pupil
+		pupilCopy := pupil
+		p.Pupils[pupil.Key] = &pupilCopy
 	}
 }

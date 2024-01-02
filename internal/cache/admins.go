@@ -1,6 +1,8 @@
 package cache
 
-import "dnevnik-rg.ru/internal/models"
+import (
+	"dnevnik-rg.ru/internal/models"
+)
 
 type IAdmin interface {
 	ReadAll() map[int]*models.Admin
@@ -41,6 +43,7 @@ func (a *Admins) WritingSession(list []models.Admin) {
 	a.Mx.Lock()
 	defer a.Mx.Unlock()
 	for _, admin := range list {
-		a.Admins[admin.Key] = &admin
+		adminCopy := admin
+		a.Admins[admin.Key] = &adminCopy
 	}
 }

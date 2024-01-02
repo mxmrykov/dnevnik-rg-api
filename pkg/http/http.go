@@ -41,6 +41,7 @@ func NewHttp(configHttp *config.Http, repo *repository.Repository, recoveryRequi
 	//Group Admin
 	mux.HandleFunc(external.GroupV1+external.CreateAdminRoute, server.CreateAdmin)
 	mux.HandleFunc(external.GroupV1+external.GetAdminRoute, server.GetAdmin)
+	mux.HandleFunc(external.GroupV1+external.GetAdminsList, server.GetAllAdminsExcept)
 
 	//Group Coach
 	mux.HandleFunc(external.GroupV1+external.CreateCoachRoute, server.CreateCoach)
@@ -70,6 +71,9 @@ func NewHttp(configHttp *config.Http, repo *repository.Repository, recoveryRequi
 
 	//Group auth
 	mux.HandleFunc(external.GroupV1+external.AuthRoute, server.Authorize)
+
+	//Group Cache
+	mux.HandleFunc(external.GroupV1+external.CacheGetAllRoute, server.ShowCacheUsers)
 
 	handler := external.CheckPermission(mux)
 	handler = external.Logger(handler)

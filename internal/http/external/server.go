@@ -10,6 +10,7 @@ import (
 type Server interface {
 	CreateAdmin(write http.ResponseWriter, request *http.Request)
 	GetAdmin(write http.ResponseWriter, request *http.Request)
+	GetAllAdminsExcept(write http.ResponseWriter, request *http.Request)
 	CreateCoach(write http.ResponseWriter, request *http.Request)
 	GetCoach(write http.ResponseWriter, request *http.Request)
 	GetCoachFull(write http.ResponseWriter, request *http.Request)
@@ -24,6 +25,7 @@ type Server interface {
 	RecoverPupils(pupils []models.Pupil)
 	RecoverCoaches(coaches []models.Coach)
 	RecoverAdmins(admins []models.Admin)
+	ShowCacheUsers(write http.ResponseWriter, request *http.Request)
 }
 
 type server struct {
@@ -38,6 +40,7 @@ const (
 
 	CreateAdminRoute = "/users/admin/create"
 	GetAdminRoute    = "/users/admin/get"
+	GetAdminsList    = "/users/admin/list"
 
 	CreateCoachRoute  = "/users/coach/create"
 	GetCoachRoute     = "/users/coach/get"
@@ -52,6 +55,8 @@ const (
 	DeletePupilRoute  = "/users/pupil/delete"
 
 	AuthRoute = "/auth"
+
+	CacheGetAllRoute = "/cache/all"
 )
 
 func NewServer(repo *repository.Repository) Server {

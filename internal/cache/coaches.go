@@ -41,6 +41,7 @@ func (a *Coaches) WritingSession(list []models.Coach) {
 	a.Mx.Lock()
 	defer a.Mx.Unlock()
 	for _, coach := range list {
-		a.Coaches[coach.Key] = &coach
+		coachCopy := coach
+		a.Coaches[coach.Key] = &coachCopy
 	}
 }
