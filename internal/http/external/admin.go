@@ -100,7 +100,7 @@ func (s *server) GetAdmin(write http.ResponseWriter, request *http.Request) {
 	if p, ok_ := s.AdminsCache.ReadById(UserId); ok_ {
 		log.Printf("admin loaded from cache: %d", (*p).Key)
 		write.WriteHeader(http.StatusOK)
-		WriteDataResponse(write, "Ученица получена", false, http.StatusOK, *p)
+		WriteDataResponse(write, "Администратор получен", false, http.StatusOK, *p)
 		return
 	}
 	admin, errGetAdmin := s.Repository.GetAdmin(UserId)
@@ -116,7 +116,6 @@ func (s *server) GetAdmin(write http.ResponseWriter, request *http.Request) {
 }
 
 func (s *server) GetAllAdminsExcept(write http.ResponseWriter, request *http.Request) {
-	//GetAllAdminsExcept
 	if request.Method != http.MethodGet {
 		write.WriteHeader(http.StatusNotFound)
 		WriteResponse(write, "Неизвестный метод", true, http.StatusNotFound)
@@ -141,6 +140,6 @@ func (s *server) GetAllAdminsExcept(write http.ResponseWriter, request *http.Req
 		return
 	}
 	write.WriteHeader(http.StatusOK)
-	WriteDataResponse(write, "Администратор получен", false, http.StatusOK, admins)
+	WriteDataResponse(write, "Список администраторов получен", false, http.StatusOK, admins)
 	return
 }

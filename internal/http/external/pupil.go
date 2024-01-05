@@ -267,3 +267,25 @@ func (s *server) DeletePupil(write http.ResponseWriter, request *http.Request) {
 	WriteResponse(write, "Ученица удалена", false, http.StatusOK)
 	return
 }
+
+func (s *server) GetAllPupilsList(write http.ResponseWriter, request *http.Request) {
+	if request.Method != http.MethodGet {
+		write.WriteHeader(http.StatusNotFound)
+		WriteResponse(write, "Неизвестный метод", true, http.StatusNotFound)
+		return
+	}
+	ok, _ := s.checkExistence(write, request)
+	if !ok {
+		return
+	}
+	pupils, errGetPupilsList := s.Repository.GetAllPupils()
+	if errGetPupilsList != nil {
+		log.Printf("cannot list admins: %v\n", errGetPupilsList)
+		write.WriteHeader(http.StatusInternalServerError)
+		WriteResponse(write, "Ошибка сервера", true, http.StatusInternalServerError)
+		return
+	}
+	write.WriteHeader(http.StatusOK)
+	WriteDataResponse(write, "Список учениц получен", false, http.StatusOK, pupils)
+	return
+}

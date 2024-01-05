@@ -102,6 +102,9 @@ const (
     FROM coach
 	LEFT JOIN public.passwords p on coach.key = p.key WHERE coach.key = $1;
 	`
+	GetAllCoachesExcept = `
+	SELECT key, fio, logo_uri FROM coach WHERE key != $1;
+	`
 	IsCoachExists = `
 	SELECT COUNT(*) FROM coach WHERE key = $1;`
 	IsAdminExistsByName = `

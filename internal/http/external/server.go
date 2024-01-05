@@ -21,11 +21,13 @@ type Server interface {
 	GetPupilFull(write http.ResponseWriter, request *http.Request)
 	UpdatePupil(write http.ResponseWriter, request *http.Request)
 	DeletePupil(write http.ResponseWriter, request *http.Request)
+	GetAllPupilsList(write http.ResponseWriter, request *http.Request)
 	Authorize(write http.ResponseWriter, request *http.Request)
 	RecoverPupils(pupils []models.Pupil)
 	RecoverCoaches(coaches []models.Coach)
 	RecoverAdmins(admins []models.Admin)
 	ShowCacheUsers(write http.ResponseWriter, request *http.Request)
+	GetAllCoachList(write http.ResponseWriter, request *http.Request)
 }
 
 type server struct {
@@ -47,12 +49,14 @@ const (
 	GetCoachFullRoute = "/users/coach/get/full"
 	UpdateCoachRoute  = "/users/coach/update"
 	DeleteCoachRoute  = "/users/coach/delete"
+	GetCoachesList    = "/users/coach/list"
 
 	CreatePupilRoute  = "/users/pupil/create"
 	GetPupilRoute     = "/users/pupil/get"
 	GetPupilFullRoute = "/users/pupil/get/full"
 	UpdatePupilRoute  = "/users/pupil/update"
 	DeletePupilRoute  = "/users/pupil/delete"
+	GetPupilsList     = "/users/pupil/list"
 
 	AuthRoute = "/auth"
 

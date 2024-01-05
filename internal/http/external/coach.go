@@ -250,3 +250,25 @@ func (s *server) DeleteCoach(write http.ResponseWriter, request *http.Request) {
 	WriteResponse(write, "Тренер удален", false, http.StatusOK)
 	return
 }
+
+func (s *server) GetAllCoachList(write http.ResponseWriter, request *http.Request) {
+	if request.Method != http.MethodGet {
+		write.WriteHeader(http.StatusNotFound)
+		WriteResponse(write, "Неизвестный метод", true, http.StatusNotFound)
+		return
+	}
+	ok, _ := s.checkExistence(write, request)
+	if !ok {
+		return
+	}
+	coaches, errGetCoaches := s.Repository.GetAllCoaches()
+	if errGetCoaches != nil {
+		log.Printf("cannot list admins: %v\n", errGetCoaches)
+		write.WriteHeader(http.StatusInternalServerError)
+		WriteResponse(write, "Ошибка сервера", true, http.StatusInternalServerError)
+		return
+	}
+	write.WriteHeader(http.StatusOK)
+	WriteDataResponse(write, "Список тренеров получен получен", false, http.StatusOK, coaches)
+	return
+}

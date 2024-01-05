@@ -25,6 +25,16 @@ type (
 		Fio     string `json:"fio"`
 		LogoUri string `json:"logo_uri"`
 	}
+	CoachList struct {
+		Key     int    `json:"key"`
+		Fio     string `json:"fio"`
+		LogoUri string `json:"logo_uri"`
+	}
+	PupilList struct {
+		Key     int    `json:"key"`
+		Fio     string `json:"fio"`
+		LogoUri string `json:"logo_uri"`
+	}
 	CoachFull struct {
 		models.Coach
 		Private Private `json:"private"`
