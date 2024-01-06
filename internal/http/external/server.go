@@ -16,6 +16,7 @@ type Server interface {
 	GetCoachFull(write http.ResponseWriter, request *http.Request)
 	UpdateCoach(write http.ResponseWriter, request *http.Request)
 	DeleteCoach(write http.ResponseWriter, request *http.Request)
+	GetAllPupilsForCoach(write http.ResponseWriter, request *http.Request)
 	CreatePupil(write http.ResponseWriter, request *http.Request)
 	GetPupil(write http.ResponseWriter, request *http.Request)
 	GetPupilFull(write http.ResponseWriter, request *http.Request)
@@ -44,12 +45,13 @@ const (
 	GetAdminRoute    = "/users/admin/get"
 	GetAdminsList    = "/users/admin/list"
 
-	CreateCoachRoute  = "/users/coach/create"
-	GetCoachRoute     = "/users/coach/get"
-	GetCoachFullRoute = "/users/coach/get/full"
-	UpdateCoachRoute  = "/users/coach/update"
-	DeleteCoachRoute  = "/users/coach/delete"
-	GetCoachesList    = "/users/coach/list"
+	CreateCoachRoute   = "/users/coach/create"
+	GetCoachRoute      = "/users/coach/get"
+	GetCoachFullRoute  = "/users/coach/get/full"
+	UpdateCoachRoute   = "/users/coach/update"
+	DeleteCoachRoute   = "/users/coach/delete"
+	GetCoachPupilsList = "/users/coach/pupils"
+	GetCoachesList     = "/users/coach/list"
 
 	CreatePupilRoute  = "/users/pupil/create"
 	GetPupilRoute     = "/users/pupil/get"

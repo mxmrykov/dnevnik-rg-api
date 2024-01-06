@@ -19,6 +19,7 @@ type (
 		TrainingCity string `json:"training_city"`
 		Birthday     string `json:"birthday"`
 		About        string `json:"about"`
+		Coach        int    `json:"coach"`
 		CoachReview  string `json:"coach_review"`
 	}
 	JwtPayload struct {

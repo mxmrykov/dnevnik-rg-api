@@ -9,6 +9,7 @@ type (
 		LogoUri string `json:"logo_uri"`
 		Role    string `json:"role"`
 	}
+
 	Pupil struct {
 		General
 		Coach        int    `json:"coach"`

@@ -105,6 +105,9 @@ const (
 	GetAllCoachesExcept = `
 	SELECT key, fio, logo_uri FROM coach WHERE key != $1;
 	`
+	GetCoachPupils = `
+	SELECT key, fio, logo_uri FROM pupil WHERE coach = $1;
+	`
 	IsCoachExists = `
 	SELECT COUNT(*) FROM coach WHERE key = $1;`
 	IsAdminExistsByName = `

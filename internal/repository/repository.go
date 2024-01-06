@@ -309,6 +309,30 @@ func (r *Repository) DeleteCoach(key int) error {
 	return err
 }
 
+func (r *Repository) GetCoachPupils(coachId int) ([]response.PupilList, error) {
+	var pupils []response.PupilList
+	rows, err := r.Pool.Query(
+		context.Background(),
+		postgres_requests.GetCoachPupils,
+		coachId,
+	)
+	for rows.Next() {
+		var pupil response.PupilList
+		if errScan := rows.Scan(
+			&pupil.Key,
+			&pupil.Fio,
+			&pupil.LogoUri,
+		); errScan != nil {
+			log.Println("error while scanning recovery pupils from DB: ", errScan)
+		}
+		pupils = append(pupils, pupil)
+	}
+	if err != nil {
+		return nil, err
+	}
+	return pupils, nil
+}
+
 func (r *Repository) IsCoachExists(key int) (bool, error) {
 	var count int
 	err := r.Pool.QueryRow(

@@ -19,9 +19,12 @@ func (s *server) CreatePupil(write http.ResponseWriter, request *http.Request) {
 		WriteResponse(write, "Неизвестный метод", true, http.StatusNotFound)
 		return
 	}
-	ok, _ := s.checkCoachExistence(write, request)
+	ok, _ := s.checkCoachExistence(write, request, false)
 	if !ok {
-		return
+		isAdmin, _ := s.checkExistence(write, request)
+		if !isAdmin {
+			return
+		}
 	}
 	decoder := json.NewDecoder(request.Body)
 	var decoded requests.NewPupil
@@ -54,13 +57,19 @@ func (s *server) CreatePupil(write http.ResponseWriter, request *http.Request) {
 		WriteResponse(write, "Ошибка создания администратора", true, http.StatusInternalServerError)
 		return
 	}
+	var coach int
+	if decoded.Coach != 0 {
+		coach = decoded.Coach
+	} else {
+		coach = UserId
+	}
 	newPupil := models.Pupil{
 		General: models.General{Key: key,
 			Fio:     decoded.Fio,
 			DateReg: timeNow,
 			LogoUri: "https://dnevnik-rg.ru/pupil-logo.png",
 		},
-		Coach:        UserId,
+		Coach:        coach,
 		HomeCity:     decoded.HomeCity,
 		TrainingCity: decoded.TrainingCity,
 		Birthday:     bday.Format(time.RFC3339),
@@ -89,16 +98,16 @@ func (s *server) CreatePupil(write http.ResponseWriter, request *http.Request) {
 		WriteResponse(write, "Ошибка создания ученицы", true, http.StatusInternalServerError)
 		return
 	}
-	pupil, errGetCoach := s.Repository.GetPupilFull(key)
-	if errGetCoach != nil {
-		log.Printf("error returns new pupil data: %v\n", errGetCoach)
+	pupil, errGetPupil := s.Repository.GetPupilFull(key)
+	if errGetPupil != nil {
+		log.Printf("error returns new pupil data: %v\n", errGetPupil)
 		write.WriteHeader(http.StatusInternalServerError)
 		WriteResponse(write, "Не удалось получить созданную ученицу", true, http.StatusInternalServerError)
 		return
 	}
 	s.PupilsCache.WritePupil(newPupil)
 	write.WriteHeader(http.StatusOK)
-	WriteDataResponse(write, "Администратор зарегистрирован", false, http.StatusOK, pupil)
+	WriteDataResponse(write, "Ученица зарегистрирована", false, http.StatusOK, pupil)
 	return
 }
 
@@ -110,7 +119,7 @@ func (s *server) GetPupil(write http.ResponseWriter, request *http.Request) {
 	}
 	pupilIdString, userId := request.URL.Query().Get("pupilId"), request.Header.Get("X-User-Id")
 	if !strings.EqualFold(pupilIdString, userId) {
-		ok, _ := s.checkCoachExistence(write, request)
+		ok, _ := s.checkCoachExistence(write, request, true)
 		if !ok {
 			return
 		}
@@ -147,7 +156,7 @@ func (s *server) GetPupilFull(write http.ResponseWriter, request *http.Request) 
 	}
 	pupilIdString, userId := request.URL.Query().Get("pupilId"), request.Header.Get("X-User-Id")
 	if !strings.EqualFold(pupilIdString, userId) {
-		ok, _ := s.checkCoachExistence(write, request)
+		ok, _ := s.checkCoachExistence(write, request, true)
 		if !ok {
 			return
 		}
@@ -178,7 +187,7 @@ func (s *server) UpdatePupil(write http.ResponseWriter, request *http.Request) {
 	}
 	pupilId, userId := request.URL.Query().Get("pupilId"), request.Header.Get("X-User-Id")
 	if !strings.EqualFold(pupilId, userId) {
-		ok, _ := s.checkCoachExistence(write, request)
+		ok, _ := s.checkCoachExistence(write, request, true)
 		if !ok {
 			return
 		}
@@ -245,7 +254,7 @@ func (s *server) DeletePupil(write http.ResponseWriter, request *http.Request) {
 		return
 	}
 	pupilIdString := request.URL.Query().Get("pupilId")
-	ok, _ := s.checkCoachExistence(write, request)
+	ok, _ := s.checkCoachExistence(write, request, true)
 	if !ok {
 		return
 	}

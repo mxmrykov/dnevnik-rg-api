@@ -98,9 +98,10 @@ func (s *server) GetCoach(write http.ResponseWriter, request *http.Request) {
 		WriteResponse(write, "Неизвестный метод", true, http.StatusNotFound)
 		return
 	}
-	ok, _ := s.checkExistence(write, request)
-	if !ok {
-		return
+	if isCoach, _ := s.checkCoachExistence(write, request, false); !isCoach {
+		if ok, _ := s.checkExistence(write, request); !ok {
+			return
+		}
 	}
 	coachIdString := request.URL.Query().Get("coachId")
 	coachId, errConvCoach := strconv.Atoi(coachIdString)
@@ -133,9 +134,10 @@ func (s *server) GetCoachFull(write http.ResponseWriter, request *http.Request) 
 		WriteResponse(write, "Неизвестный метод", true, http.StatusNotFound)
 		return
 	}
-	ok, _ := s.checkExistence(write, request)
-	if !ok {
-		return
+	if isCoach, _ := s.checkCoachExistence(write, request, false); !isCoach {
+		if ok, _ := s.checkExistence(write, request); !ok {
+			return
+		}
 	}
 	coachIdString := request.URL.Query().Get("coachId")
 	coachId, errConvCoach := strconv.Atoi(coachIdString)
@@ -162,9 +164,10 @@ func (s *server) UpdateCoach(write http.ResponseWriter, request *http.Request) {
 		WriteResponse(write, "Неизвестный метод", true, http.StatusNotFound)
 		return
 	}
-	ok, _ := s.checkExistence(write, request)
-	if !ok {
-		return
+	if isCoach, _ := s.checkCoachExistence(write, request, false); !isCoach {
+		if ok, _ := s.checkExistence(write, request); !ok {
+			return
+		}
 	}
 	decoder := json.NewDecoder(request.Body)
 	var decoded requests.UpdateCoach
@@ -248,6 +251,36 @@ func (s *server) DeleteCoach(write http.ResponseWriter, request *http.Request) {
 	}
 	write.WriteHeader(http.StatusOK)
 	WriteResponse(write, "Тренер удален", false, http.StatusOK)
+	return
+}
+
+func (s *server) GetAllPupilsForCoach(write http.ResponseWriter, request *http.Request) {
+	if request.Method != http.MethodGet {
+		write.WriteHeader(http.StatusNotFound)
+		WriteResponse(write, "Неизвестный метод", true, http.StatusNotFound)
+		return
+	}
+	if isCoach, _ := s.checkCoachExistence(write, request, false); !isCoach {
+		if ok, _ := s.checkExistence(write, request); !ok {
+			return
+		}
+	}
+	coachIdString := request.URL.Query().Get("coachId")
+	coachId, errConvCoach := strconv.Atoi(coachIdString)
+	if errConvCoach != nil {
+		write.WriteHeader(http.StatusInternalServerError)
+		WriteResponse(write, "Произошла ошибка на сервере", true, http.StatusInternalServerError)
+		return
+	}
+	pupils, errGetPupils := s.Repository.GetCoachPupils(coachId)
+	if errGetPupils != nil {
+		log.Printf("error returns coach pupils list: %v\n", errGetPupils)
+		write.WriteHeader(http.StatusNotFound)
+		WriteResponse(write, "Не удалось получить список учениц", true, http.StatusNotFound)
+		return
+	}
+	write.WriteHeader(http.StatusOK)
+	WriteDataResponse(write, "Список учениц получен", false, http.StatusOK, pupils)
 	return
 }
 

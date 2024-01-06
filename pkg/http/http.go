@@ -55,6 +55,9 @@ func NewHttp(configHttp *config.Http, repo *repository.Repository, recoveryRequi
 		external.CheckCoachId(http.HandlerFunc(server.UpdateCoach)),
 	)
 	mux.HandleFunc(external.GroupV1+external.DeleteCoachRoute, server.DeleteCoach)
+	mux.Handle(external.GroupV1+external.GetCoachPupilsList,
+		external.CheckCoachId(http.HandlerFunc(server.GetAllPupilsForCoach)),
+	)
 	mux.HandleFunc(external.GroupV1+external.GetCoachesList, server.GetAllCoachList)
 
 	//Group Pupil
