@@ -157,4 +157,7 @@ const (
 	WHERE key = $1 AND checksum = $2
 	AND EXISTS (SELECT * FROM pupil WHERE pupil.key = passwords.key);
 	`
+	GetCoachNearestBirthdays = `
+	SELECT key, fio, birthday FROM pupil WHERE coach = $1;
+	`
 )

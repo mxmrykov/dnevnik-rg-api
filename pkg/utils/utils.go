@@ -78,3 +78,61 @@ func GenerateUpdateSql(table string, key int, newParams []string, newValues []st
 	buf.WriteString(fmt.Sprintf(" WHERE key=%d", key))
 	return buf.String()
 }
+
+func GetNearestBdays(bList []requests.BirthDayList) []requests.BirthDayList {
+	var (
+		bdayList []struct {
+			index int
+			bday  time.Time
+		}
+		finalBdayList []requests.BirthDayList
+	)
+	for i, e := range bList {
+		bday, _ := time.Parse(time.RFC3339, e.Birthday)
+		bdayList = append(bdayList, struct {
+			index int
+			bday  time.Time
+		}{index: i, bday: bday})
+	}
+	timeNow := time.Now()
+	today := time.Date(
+		timeNow.Year(),
+		timeNow.Month(),
+		timeNow.Day(),
+		0,
+		0,
+		0,
+		0,
+		time.UTC,
+	)
+	weekAfterTime := time.Date(
+		timeNow.Year(),
+		timeNow.Month(),
+		timeNow.Day()+7,
+		0,
+		0,
+		0,
+		0,
+		time.UTC,
+	)
+	for _, e := range bdayList {
+		birthday := time.Date(
+			timeNow.Year(),
+			e.bday.Month(),
+			e.bday.Day(),
+			0,
+			0,
+			0,
+			0,
+			time.UTC,
+		)
+		if birthday.After(today) && birthday.Before(weekAfterTime) {
+			finalBdayList = append(finalBdayList, requests.BirthDayList{
+				Key:      bList[e.index].Key,
+				Fio:      bList[e.index].Fio,
+				Birthday: bList[e.index].Birthday,
+			})
+		}
+	}
+	return finalBdayList
+}

@@ -46,4 +46,9 @@ type (
 	Auth struct {
 		Checksum string `json:"checksum"`
 	}
+	BirthDayList struct {
+		Key      int    `json:"key"`
+		Fio      string `json:"fio"`
+		Birthday string `json:"birthday"`
+	}
 )

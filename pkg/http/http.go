@@ -80,6 +80,11 @@ func NewHttp(configHttp *config.Http, repo *repository.Repository, recoveryRequi
 	//Group Cache
 	mux.HandleFunc(external.GroupV1+external.CacheGetAllRoute, server.ShowCacheUsers)
 
+	//Group Additional
+	mux.Handle(external.GroupV1+external.GetPupilsBirthdayList,
+		external.CheckCoachId(http.HandlerFunc(server.GetNearestBirthdays)),
+	)
+
 	handler := external.CheckPermission(mux)
 	handler = external.Logger(handler)
 	handler = external.SetCors(handler)

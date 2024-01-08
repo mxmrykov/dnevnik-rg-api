@@ -88,7 +88,7 @@ func (s *server) CreateCoach(write http.ResponseWriter, request *http.Request) {
 	}
 	s.CoachesCache.WriteCoach(newCoach)
 	write.WriteHeader(http.StatusOK)
-	WriteDataResponse(write, "Администратор зарегистрирован", false, http.StatusOK, coach)
+	WriteDataResponse(write, "Тренер зарегистрирован", false, http.StatusOK, coach)
 	return
 }
 
@@ -302,6 +302,37 @@ func (s *server) GetAllCoachList(write http.ResponseWriter, request *http.Reques
 		return
 	}
 	write.WriteHeader(http.StatusOK)
-	WriteDataResponse(write, "Список тренеров получен получен", false, http.StatusOK, coaches)
+	WriteDataResponse(write, "Список тренеров получен", false, http.StatusOK, coaches)
+	return
+}
+
+func (s *server) GetNearestBirthdays(write http.ResponseWriter, request *http.Request) {
+	if request.Method != http.MethodGet {
+		write.WriteHeader(http.StatusNotFound)
+		WriteResponse(write, "Неизвестный метод", true, http.StatusNotFound)
+		return
+	}
+	if isCoach, _ := s.checkCoachExistence(write, request, false); !isCoach {
+		if ok, _ := s.checkExistence(write, request); !ok {
+			return
+		}
+	}
+	coachIdString := request.URL.Query().Get("coachId")
+	coachId, errConvCoach := strconv.Atoi(coachIdString)
+	if errConvCoach != nil {
+		write.WriteHeader(http.StatusInternalServerError)
+		WriteResponse(write, "Произошла ошибка на сервере", true, http.StatusInternalServerError)
+		return
+	}
+	birthDayList, errGetBdayList := s.Repository.GetBirthdaysList(coachId)
+	if errGetBdayList != nil {
+		log.Printf("cannot list bdays for id: %d: %v\n", coachId, errGetBdayList)
+		write.WriteHeader(http.StatusInternalServerError)
+		WriteResponse(write, "Ошибка сервера", true, http.StatusInternalServerError)
+		return
+	}
+	bdays := utils.GetNearestBdays(birthDayList)
+	write.WriteHeader(http.StatusOK)
+	WriteDataResponse(write, "Список ближайших дней рождений получен", false, http.StatusOK, bdays)
 	return
 }

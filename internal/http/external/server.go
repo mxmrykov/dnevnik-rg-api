@@ -29,6 +29,7 @@ type Server interface {
 	RecoverAdmins(admins []models.Admin)
 	ShowCacheUsers(write http.ResponseWriter, request *http.Request)
 	GetAllCoachList(write http.ResponseWriter, request *http.Request)
+	GetNearestBirthdays(write http.ResponseWriter, request *http.Request)
 }
 
 type server struct {
@@ -63,6 +64,8 @@ const (
 	AuthRoute = "/auth"
 
 	CacheGetAllRoute = "/cache/all"
+
+	GetPupilsBirthdayList = "/additional/birthday/list"
 )
 
 func NewServer(repo *repository.Repository) Server {

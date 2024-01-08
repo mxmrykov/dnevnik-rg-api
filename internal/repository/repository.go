@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"dnevnik-rg.ru/internal/models"
+	requests "dnevnik-rg.ru/internal/models/request"
 	"dnevnik-rg.ru/internal/models/response"
 	postgres_requests "dnevnik-rg.ru/internal/postgres-requests"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -434,4 +435,28 @@ func (r *Repository) Authorize(key int, checksum string) (response.Auth, error) 
 		&auth.Role,
 	)
 	return auth, err
+}
+
+func (r *Repository) GetBirthdaysList(key int) ([]requests.BirthDayList, error) {
+	var bdays []requests.BirthDayList
+	rows, err := r.Pool.Query(
+		context.Background(),
+		postgres_requests.GetCoachNearestBirthdays,
+		key,
+	)
+	for rows.Next() {
+		var bday requests.BirthDayList
+		if errScan := rows.Scan(
+			&bday.Key,
+			&bday.Fio,
+			&bday.Birthday,
+		); errScan != nil {
+			log.Println("error while scanning recovery pupils from DB: ", errScan)
+		}
+		bdays = append(bdays, bday)
+	}
+	if err != nil {
+		return nil, err
+	}
+	return bdays, nil
 }
