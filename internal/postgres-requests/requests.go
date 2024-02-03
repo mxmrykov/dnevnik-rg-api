@@ -160,4 +160,7 @@ const (
 	GetCoachNearestBirthdays = `
 	SELECT key, fio, birthday FROM pupil WHERE coach = $1;
 	`
+	GetCoachSchedule = `
+	SELECT udid, key, pupil, coach, class_date, class_time, class_dur FROM classes WHERE coach = $1 AND class_date = $2;
+	`
 )

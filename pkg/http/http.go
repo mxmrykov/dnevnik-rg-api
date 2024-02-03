@@ -1,11 +1,12 @@
 package http
 
 import (
+	"log"
+	"net/http"
+
 	"dnevnik-rg.ru/config"
 	"dnevnik-rg.ru/internal/http/external"
 	"dnevnik-rg.ru/internal/repository"
-	"log"
-	"net/http"
 )
 
 func NewHttp(configHttp *config.Http, repo *repository.Repository, recoveryRequired bool) {
@@ -73,6 +74,9 @@ func NewHttp(configHttp *config.Http, repo *repository.Repository, recoveryRequi
 	)
 	mux.HandleFunc(external.GroupV1+external.DeletePupilRoute, server.DeletePupil)
 	mux.HandleFunc(external.GroupV1+external.GetPupilsList, server.GetAllPupilsList)
+
+	//Group Classes
+	mux.HandleFunc(external.GroupV1+external.GetCoachSchedule, server.GetCoachSchedule)
 
 	//Group auth
 	mux.HandleFunc(external.GroupV1+external.AuthRoute, server.Authorize)

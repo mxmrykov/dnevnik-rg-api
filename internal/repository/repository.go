@@ -2,12 +2,13 @@ package repository
 
 import (
 	"context"
+	"log"
+
 	"dnevnik-rg.ru/internal/models"
 	requests "dnevnik-rg.ru/internal/models/request"
 	"dnevnik-rg.ru/internal/models/response"
 	postgres_requests "dnevnik-rg.ru/internal/postgres-requests"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"log"
 )
 
 type Repository struct {
@@ -459,4 +460,33 @@ func (r *Repository) GetBirthdaysList(key int) ([]requests.BirthDayList, error) 
 		return nil, err
 	}
 	return bdays, nil
+}
+
+func (r *Repository) GetCoachSchedule(key int, date string) ([]models.ClassMainInfo, error) {
+	var classes []models.ClassMainInfo
+	rows, err := r.Pool.Query(
+		context.Background(),
+		postgres_requests.GetCoachSchedule,
+		key,
+		date,
+	)
+	for rows.Next() {
+		var class models.ClassMainInfo
+		if errScan := rows.Scan(
+			nil,
+			&class.Key,
+			&class.Pupil,
+			&class.Coach,
+			&class.ClassDate,
+			&class.ClassTime,
+			&class.ClassDuration,
+		); errScan != nil {
+			log.Println("error while scanning main class info: ", errScan)
+		}
+		classes = append(classes, class)
+	}
+	if err != nil {
+		return nil, err
+	}
+	return classes, nil
 }

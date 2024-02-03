@@ -3,14 +3,17 @@ package utils
 import (
 	"bytes"
 	"crypto/md5"
-	requests "dnevnik-rg.ru/internal/models/request"
 	"encoding/hex"
 	"fmt"
-	"github.com/golang-jwt/jwt"
+	"log"
 	"math/rand"
 	"os"
 	"strconv"
 	"time"
+
+	"dnevnik-rg.ru/internal/models"
+	requests "dnevnik-rg.ru/internal/models/request"
+	"github.com/golang-jwt/jwt"
 )
 
 func NewPassword() string {
@@ -135,4 +138,108 @@ func GetNearestBdays(bList []requests.BirthDayList) []requests.BirthDayList {
 		}
 	}
 	return finalBdayList
+}
+
+func GetAvailClassesTimesAlgo(classes []models.ClassMainInfo) map[string]struct {
+	General         bool `json:"general"`
+	HalfHourFree    bool `json:"half_hour_free"`
+	HourFree        bool `json:"hour_free"`
+	OneHalfHourFree bool `json:"one_half_hour_free"`
+	TwoHourFree     bool `json:"two_hour_free"`
+	TwoHalfHourFree bool `json:"two_half_hour_free"`
+} {
+	timeTable := genTimeTable()
+	timeLayout := "15:04"
+	for _, class := range classes {
+		entry := timeTable[class.ClassTime]
+		entry.General = false
+		timeTable[class.ClassTime] = entry
+		classTime, err := time.Parse(timeLayout, class.ClassTime)
+		if err != nil {
+			log.Printf("err parsing time: %v", err)
+			continue
+		}
+		// todo: придумать нормальный алгос для перебора и установки досутпного времени
+		classTime = classTime.Add(-30 * time.Minute)
+		result := classTime.Format(timeLayout)
+		entry = timeTable[result]
+		entry.HalfHourFree = false
+		timeTable[result] = entry
+
+		classTime, _ = time.Parse(timeLayout, result)
+		classTime = classTime.Add(-30 * time.Minute)
+		result = classTime.Format(timeLayout)
+		entry = timeTable[result]
+		entry.HourFree = false
+		timeTable[result] = entry
+
+		classTime, _ = time.Parse(timeLayout, result)
+		classTime = classTime.Add(-30 * time.Minute)
+		result = classTime.Format(timeLayout)
+		entry = timeTable[result]
+		entry.OneHalfHourFree = false
+		timeTable[result] = entry
+
+		classTime, _ = time.Parse(timeLayout, result)
+		classTime = classTime.Add(-30 * time.Minute)
+		result = classTime.Format(timeLayout)
+		entry = timeTable[result]
+		entry.TwoHourFree = false
+		timeTable[result] = entry
+
+		classTime, _ = time.Parse(timeLayout, result)
+		classTime = classTime.Add(-30 * time.Minute)
+		result = classTime.Format(timeLayout)
+		entry = timeTable[result]
+		entry.TwoHalfHourFree = false
+		timeTable[result] = entry
+	}
+	return timeTable
+}
+
+func genTimeTable() map[string]struct {
+	General         bool `json:"general"`
+	HalfHourFree    bool `json:"half_hour_free"`
+	HourFree        bool `json:"hour_free"`
+	OneHalfHourFree bool `json:"one_half_hour_free"`
+	TwoHourFree     bool `json:"two_hour_free"`
+	TwoHalfHourFree bool `json:"two_half_hour_free"`
+} {
+	var (
+		timeTable = make(map[string]struct {
+			General         bool `json:"general"`
+			HalfHourFree    bool `json:"half_hour_free"`
+			HourFree        bool `json:"hour_free"`
+			OneHalfHourFree bool `json:"one_half_hour_free"`
+			TwoHourFree     bool `json:"two_hour_free"`
+			TwoHalfHourFree bool `json:"two_half_hour_free"`
+		})
+		lastHour   = 9
+		timeString string
+	)
+	for i := 0; i < 23; i += 1 {
+		if i%2 == 0 {
+			if i < 2 {
+				timeString = fmt.Sprintf("0%d:00", lastHour)
+			} else {
+				timeString = fmt.Sprintf("%d:00", lastHour)
+			}
+		} else {
+			if i < 2 {
+				timeString = fmt.Sprintf("0%d:30", lastHour)
+			} else {
+				timeString = fmt.Sprintf("%d:30", lastHour)
+			}
+			lastHour += 1
+		}
+		timeTable[timeString] = struct {
+			General         bool `json:"general"`
+			HalfHourFree    bool `json:"half_hour_free"`
+			HourFree        bool `json:"hour_free"`
+			OneHalfHourFree bool `json:"one_half_hour_free"`
+			TwoHourFree     bool `json:"two_hour_free"`
+			TwoHalfHourFree bool `json:"two_half_hour_free"`
+		}{General: true, HalfHourFree: true, HourFree: true, OneHalfHourFree: true, TwoHourFree: true, TwoHalfHourFree: true}
+	}
+	return timeTable
 }

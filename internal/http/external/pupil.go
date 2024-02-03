@@ -1,9 +1,6 @@
 package external
 
 import (
-	"dnevnik-rg.ru/internal/models"
-	requests "dnevnik-rg.ru/internal/models/request"
-	"dnevnik-rg.ru/pkg/utils"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -11,6 +8,10 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"dnevnik-rg.ru/internal/models"
+	requests "dnevnik-rg.ru/internal/models/request"
+	"dnevnik-rg.ru/pkg/utils"
 )
 
 func (s *server) CreatePupil(write http.ResponseWriter, request *http.Request) {
@@ -283,8 +284,7 @@ func (s *server) GetAllPupilsList(write http.ResponseWriter, request *http.Reque
 		WriteResponse(write, "Неизвестный метод", true, http.StatusNotFound)
 		return
 	}
-	ok, _ := s.checkExistence(write, request)
-	if !ok {
+	if ok, _ := s.checkExistence(write, request); !ok {
 		return
 	}
 	pupils, errGetPupilsList := s.Repository.GetAllPupils()
