@@ -1,11 +1,12 @@
 package external
 
 import (
-	requests "dnevnik-rg.ru/internal/models/request"
 	"encoding/json"
 	"log"
 	"net/http"
 	"strconv"
+
+	requests "dnevnik-rg.ru/internal/models/request"
 )
 
 func (s *server) Authorize(write http.ResponseWriter, request *http.Request) {
@@ -40,6 +41,7 @@ func (s *server) Authorize(write http.ResponseWriter, request *http.Request) {
 		WriteResponse(write, "Неверные данные для входа", true, http.StatusUnauthorized)
 		return
 	}
+	log.Println(auth)
 	write.WriteHeader(http.StatusOK)
 	WriteDataResponse(write, "Данные авторизации получены", false, http.StatusOK, auth)
 	return

@@ -2,68 +2,75 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"dnevnik-rg.ru/internal/models"
 	requests "dnevnik-rg.ru/internal/models/request"
 	"dnevnik-rg.ru/internal/models/response"
-	postgres_requests "dnevnik-rg.ru/internal/postgres-requests"
+	pgRequests "dnevnik-rg.ru/internal/postgres-requests"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 type Repository struct {
-	Pool *pgxpool.Pool
+	Shard1 *pgxpool.Pool
+	Shard2 *pgxpool.Pool
+	Shard3 *pgxpool.Pool
 }
 
-func NewRepository(pool *pgxpool.Pool) *Repository {
-	return &Repository{Pool: pool}
+func NewRepository(shards []*pgxpool.Pool) *Repository {
+	return &Repository{
+		Shard1: shards[0],
+		Shard2: shards[1],
+		Shard3: shards[2],
+	}
 }
 
 func (r *Repository) InitTablePupils() error {
-	_, errInitTable := r.Pool.Exec(
+	_, errInitTable := r.Shard1.Exec(
 		context.Background(),
-		postgres_requests.InitTablePupils,
+		pgRequests.InitTablePupils,
 	)
 	return errInitTable
 }
 
 func (r *Repository) InitTableCoaches() error {
-	_, errInitTable := r.Pool.Exec(
+	_, errInitTable := r.Shard1.Exec(
 		context.Background(),
-		postgres_requests.InitTableCoaches,
+		pgRequests.InitTableCoaches,
 	)
 	return errInitTable
 }
 
 func (r *Repository) InitTablePasswords() error {
-	_, errInitTable := r.Pool.Exec(
+	_, errInitTable := r.Shard2.Exec(
 		context.Background(),
-		postgres_requests.InitTablePasswords,
+		pgRequests.InitTablePasswords,
 	)
 	return errInitTable
 }
 
 func (r *Repository) InitTableClasses() error {
-	_, errInitTable := r.Pool.Exec(
+	_, errInitTable := r.Shard3.Exec(
 		context.Background(),
-		postgres_requests.InitTableClasses,
+		pgRequests.InitTableClasses,
 	)
 	return errInitTable
 }
 
 func (r *Repository) InitTableAdmins() error {
-	_, errInitTable := r.Pool.Exec(
+	_, errInitTable := r.Shard1.Exec(
 		context.Background(),
-		postgres_requests.InitTableAdmins,
+		pgRequests.InitTableAdmins,
 	)
 	return errInitTable
 }
 
 func (r *Repository) GetAllPupils() ([]models.Pupil, error) {
 	var pupils []models.Pupil
-	rows, err := r.Pool.Query(
+	rows, err := r.Shard1.Query(
 		context.Background(),
-		postgres_requests.GetAllPupils,
+		pgRequests.GetAllPupils,
 	)
 	for rows.Next() {
 		var pupil models.Pupil
@@ -93,9 +100,9 @@ func (r *Repository) GetAllPupils() ([]models.Pupil, error) {
 
 func (r *Repository) GetAllCoaches() ([]models.Coach, error) {
 	var coaches []models.Coach
-	rows, err := r.Pool.Query(
+	rows, err := r.Shard1.Query(
 		context.Background(),
-		postgres_requests.GetAllCoaches,
+		pgRequests.GetAllCoaches,
 	)
 	for rows.Next() {
 		var coach models.Coach
@@ -123,9 +130,9 @@ func (r *Repository) GetAllCoaches() ([]models.Coach, error) {
 
 func (r *Repository) GetAllAdmins() ([]models.Admin, error) {
 	var admins []models.Admin
-	rows, err := r.Pool.Query(
+	rows, err := r.Shard1.Query(
 		context.Background(),
-		postgres_requests.GetAllAdmins,
+		pgRequests.GetAllAdmins,
 	)
 	for rows.Next() {
 		var admin models.Admin
@@ -149,9 +156,9 @@ func (r *Repository) GetAllAdmins() ([]models.Admin, error) {
 
 func (r *Repository) GetAllAdminsExcept(key int) ([]response.AdminList, error) {
 	var admins []response.AdminList
-	rows, err := r.Pool.Query(
+	rows, err := r.Shard1.Query(
 		context.Background(),
-		postgres_requests.GetAllAdminsExcept,
+		pgRequests.GetAllAdminsExcept,
 		key,
 	)
 	for rows.Next() {
@@ -172,36 +179,36 @@ func (r *Repository) GetAllAdminsExcept(key int) ([]response.AdminList, error) {
 }
 
 func (r *Repository) NewAdmin(admin models.Admin) error {
-	_, errNewAdmin := r.Pool.Exec(
+	_, errNewAdmin := r.Shard1.Exec(
 		context.Background(),
-		postgres_requests.NewAdmin,
+		pgRequests.NewAdmin,
 		admin.Key, admin.Fio, admin.DateReg, admin.LogoUri, "ADMIN",
 	)
 	return errNewAdmin
 }
 
 func (r *Repository) DeleteAdmin(key int) error {
-	_, errNewAdmin := r.Pool.Exec(
+	_, errNewAdmin := r.Shard1.Exec(
 		context.Background(),
-		postgres_requests.DeleteAdmin,
+		pgRequests.DeleteAdmin,
 		key,
 	)
 	return errNewAdmin
 }
 
 func (r *Repository) NewPassword(password models.Password) error {
-	_, errNewAdmin := r.Pool.Exec(
+	_, errNewAdmin := r.Shard2.Exec(
 		context.Background(),
-		postgres_requests.NewPassword,
+		pgRequests.NewPassword,
 		password.Key, password.CheckSum, password.Token, password.LastUpdate,
 	)
 	return errNewAdmin
 }
 
 func (r *Repository) DeletePassword(key int) error {
-	_, errNewAdmin := r.Pool.Exec(
+	_, errNewAdmin := r.Shard2.Exec(
 		context.Background(),
-		postgres_requests.DeletePassword,
+		pgRequests.DeletePassword,
 		key,
 	)
 	return errNewAdmin
@@ -209,9 +216,9 @@ func (r *Repository) DeletePassword(key int) error {
 
 func (r *Repository) GetAdmin(key int) (response.Admin, error) {
 	var Admin response.Admin
-	err := r.Pool.QueryRow(
+	err := r.Shard1.QueryRow(
 		context.Background(),
-		postgres_requests.GetAdmin,
+		pgRequests.GetAdmin,
 		key,
 	).Scan(
 		&Admin.Key,
@@ -228,9 +235,9 @@ func (r *Repository) GetAdmin(key int) (response.Admin, error) {
 
 func (r *Repository) IsAdminExists(key int) (bool, error) {
 	var count int
-	err := r.Pool.QueryRow(
+	err := r.Shard1.QueryRow(
 		context.Background(),
-		postgres_requests.IsAdminExists,
+		pgRequests.IsAdminExists,
 		key,
 	).Scan(
 		&count,
@@ -239,9 +246,9 @@ func (r *Repository) IsAdminExists(key int) (bool, error) {
 }
 
 func (r *Repository) CreateCoach(coach models.Coach) error {
-	_, errNewCoach := r.Pool.Exec(
+	_, errNewCoach := r.Shard1.Exec(
 		context.Background(),
-		postgres_requests.CreateCoach,
+		pgRequests.CreateCoach,
 		coach.Key, coach.Fio, coach.DateReg,
 		coach.HomeCity, coach.TrainingCity,
 		coach.Birthday, coach.About, coach.LogoUri,
@@ -252,9 +259,9 @@ func (r *Repository) CreateCoach(coach models.Coach) error {
 
 func (r *Repository) GetCoach(key int) (response.Coach, error) {
 	var coach response.Coach
-	err := r.Pool.QueryRow(
+	err := r.Shard1.QueryRow(
 		context.Background(),
-		postgres_requests.GetCoach,
+		pgRequests.GetCoach,
 		key,
 	).Scan(
 		nil,
@@ -273,9 +280,9 @@ func (r *Repository) GetCoach(key int) (response.Coach, error) {
 
 func (r *Repository) GetCoachFull(key int) (response.CoachFull, error) {
 	var coach response.CoachFull
-	err := r.Pool.QueryRow(
+	err := r.Shard1.QueryRow(
 		context.Background(),
-		postgres_requests.GetCoachFull,
+		pgRequests.GetCoachFull,
 		key,
 	).Scan(
 		&coach.Key,
@@ -295,7 +302,7 @@ func (r *Repository) GetCoachFull(key int) (response.CoachFull, error) {
 }
 
 func (r *Repository) UpdateCoach(sql string) error {
-	_, err := r.Pool.Exec(
+	_, err := r.Shard1.Exec(
 		context.Background(),
 		sql,
 	)
@@ -303,9 +310,9 @@ func (r *Repository) UpdateCoach(sql string) error {
 }
 
 func (r *Repository) DeleteCoach(key int) error {
-	_, err := r.Pool.Exec(
+	_, err := r.Shard1.Exec(
 		context.Background(),
-		postgres_requests.DeleteCoach,
+		pgRequests.DeleteCoach,
 		key,
 	)
 	return err
@@ -313,9 +320,9 @@ func (r *Repository) DeleteCoach(key int) error {
 
 func (r *Repository) GetCoachPupils(coachId int) ([]response.PupilList, error) {
 	var pupils []response.PupilList
-	rows, err := r.Pool.Query(
+	rows, err := r.Shard1.Query(
 		context.Background(),
-		postgres_requests.GetCoachPupils,
+		pgRequests.GetCoachPupils,
 		coachId,
 	)
 	for rows.Next() {
@@ -337,9 +344,9 @@ func (r *Repository) GetCoachPupils(coachId int) ([]response.PupilList, error) {
 
 func (r *Repository) IsCoachExists(key int) (bool, error) {
 	var count int
-	err := r.Pool.QueryRow(
+	err := r.Shard1.QueryRow(
 		context.Background(),
-		postgres_requests.IsCoachExists,
+		pgRequests.IsCoachExists,
 		key,
 	).Scan(
 		&count,
@@ -348,9 +355,9 @@ func (r *Repository) IsCoachExists(key int) (bool, error) {
 }
 
 func (r *Repository) CreatePupil(Pupil models.Pupil) error {
-	_, errNewCoach := r.Pool.Exec(
+	_, errNewCoach := r.Shard1.Exec(
 		context.Background(),
-		postgres_requests.CreatePupil,
+		pgRequests.CreatePupil,
 		Pupil.Key, Pupil.Fio, Pupil.DateReg,
 		Pupil.Coach, Pupil.HomeCity, Pupil.TrainingCity,
 		Pupil.Birthday, Pupil.About, Pupil.CoachReview,
@@ -361,9 +368,9 @@ func (r *Repository) CreatePupil(Pupil models.Pupil) error {
 
 func (r *Repository) GetPupilFull(key int) (response.PupilFull, error) {
 	var pupil response.PupilFull
-	err := r.Pool.QueryRow(
+	err := r.Shard1.QueryRow(
 		context.Background(),
-		postgres_requests.GetPupilFull,
+		pgRequests.GetPupilFull,
 		key,
 	).Scan(
 		&pupil.Key,
@@ -386,9 +393,9 @@ func (r *Repository) GetPupilFull(key int) (response.PupilFull, error) {
 
 func (r *Repository) GetPupil(key int) (response.Pupil, error) {
 	var pupil response.Pupil
-	err := r.Pool.QueryRow(
+	err := r.Shard1.QueryRow(
 		context.Background(),
-		postgres_requests.GetPupil,
+		pgRequests.GetPupil,
 		key,
 	).Scan(
 		nil,
@@ -408,7 +415,7 @@ func (r *Repository) GetPupil(key int) (response.Pupil, error) {
 }
 
 func (r *Repository) UpdatePupil(sql string) error {
-	_, err := r.Pool.Exec(
+	_, err := r.Shard1.Exec(
 		context.Background(),
 		sql,
 	)
@@ -416,33 +423,55 @@ func (r *Repository) UpdatePupil(sql string) error {
 }
 
 func (r *Repository) DeletePupil(key int) error {
-	_, err := r.Pool.Exec(
+	_, err := r.Shard1.Exec(
 		context.Background(),
-		postgres_requests.DeletePupil,
+		pgRequests.DeletePupil,
 		key,
 	)
 	return err
 }
 
 func (r *Repository) Authorize(key int, checksum string) (response.Auth, error) {
-	var auth response.Auth
-	err := r.Pool.QueryRow(
-		context.Background(),
-		postgres_requests.Auth,
-		key, checksum,
-	).Scan(
-		&auth.Key,
-		&auth.Token,
-		&auth.Role,
+	var (
+		password string
+		auth     response.Auth
 	)
-	return auth, err
+
+	if err := r.Shard2.QueryRow(
+		context.Background(),
+		pgRequests.GetPasswordCheck,
+		key,
+	).Scan(
+		&password,
+		&auth.Token,
+	); err != nil {
+		return response.Auth{}, err
+	}
+
+	if password != checksum {
+		return response.Auth{}, fmt.Errorf("wrong password")
+	}
+
+	if err := r.Shard1.QueryRow(
+		context.Background(),
+		pgRequests.Auth,
+		key,
+	).Scan(
+		&auth.Role,
+	); err != nil {
+		return response.Auth{}, err
+	}
+
+	auth.Key = key
+
+	return auth, nil
 }
 
 func (r *Repository) GetBirthdaysList(key int) ([]requests.BirthDayList, error) {
 	var bdays []requests.BirthDayList
-	rows, err := r.Pool.Query(
+	rows, err := r.Shard1.Query(
 		context.Background(),
-		postgres_requests.GetCoachNearestBirthdays,
+		pgRequests.GetCoachNearestBirthdays,
 		key,
 	)
 	for rows.Next() {
@@ -464,9 +493,9 @@ func (r *Repository) GetBirthdaysList(key int) ([]requests.BirthDayList, error) 
 
 func (r *Repository) GetCoachSchedule(key int, date string) ([]models.ClassMainInfo, error) {
 	var classes []models.ClassMainInfo
-	rows, err := r.Pool.Query(
+	rows, err := r.Shard3.Query(
 		context.Background(),
-		postgres_requests.GetCoachSchedule,
+		pgRequests.GetCoachSchedule,
 		key,
 		date,
 	)

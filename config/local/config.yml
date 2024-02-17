@@ -9,22 +9,22 @@ HTTP:
 POSTGRES:
   shard1:
     PG_NAME: "dnevnik-rg.shard-1"
-    PG_HOST: "pg-shard-1"
-    PG_PORT: "5432"
+    PG_HOST: "localhost"
+    PG_PORT: "5588"
     PG_USER: "30c128f7"
     PG_PASSWORD: "058cb8ee6a01b88f"
     PG_DRIVER: "pq"
   shard2:
     PG_NAME: "dnevnik-rg.shard-2"
-    PG_HOST: "pg-shard-2"
-    PG_PORT: "5432"
+    PG_HOST: "localhost"
+    PG_PORT: "5589"
     PG_USER: "30c128f7"
     PG_PASSWORD: "058cb8ee6a01b88f"
     PG_DRIVER: "pq"
   shard3:
     PG_NAME: "dnevnik-rg.shard-3"
-    PG_HOST: "pg-shard-3"
-    PG_PORT: "5432"
+    PG_HOST: "localhost"
+    PG_PORT: "5590"
     PG_USER: "30c128f7"
     PG_PASSWORD: "058cb8ee6a01b88f"
     PG_DRIVER: "pq"

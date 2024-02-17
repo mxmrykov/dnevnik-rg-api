@@ -3,6 +3,7 @@ package http
 import (
 	"log"
 	"net/http"
+	"time"
 
 	"dnevnik-rg.ru/config"
 	"dnevnik-rg.ru/internal/http/external"
@@ -12,30 +13,31 @@ import (
 func NewHttp(configHttp *config.Http, repo *repository.Repository, recoveryRequired bool) {
 	mux := http.NewServeMux()
 	server := external.NewServer(repo)
+	cacheRecoveryTimeStart := time.Now()
 
-	go func() {
+	go func(cacheRecoveryTimeStart *time.Time) {
 		if !recoveryRequired {
 			return
 		}
-		log.Println("recovery is required, starting...")
+		log.Println("cache recovery is required, starting...")
 		pupils, errRecoveryPupils := repo.GetAllPupils()
 		if errRecoveryPupils != nil {
-			log.Println("error recovering pupils from DB:", errRecoveryPupils)
+			log.Println("error recovering pupils from DB to cache:", errRecoveryPupils)
 		}
 		server.RecoverPupils(pupils)
 		coaches, errRecoveryCoaches := repo.GetAllCoaches()
 		if errRecoveryCoaches != nil {
-			log.Println("error recovering coaches from DB:", errRecoveryCoaches)
+			log.Println("error recovering coaches from DB to cache:", errRecoveryCoaches)
 		}
 		server.RecoverCoaches(coaches)
 		admins, errRecoveryAdmins := repo.GetAllAdmins()
 		if errRecoveryAdmins != nil {
-			log.Println("error recovering admins from DB:", errRecoveryAdmins)
+			log.Println("error recovering admins from DB to cache:", errRecoveryAdmins)
 		}
 		server.RecoverAdmins(admins)
-		log.Println("recovery is overed")
+		log.Println("cache recovery is overed | recovery time:", time.Since(*cacheRecoveryTimeStart))
 		return
-	}()
+	}(&cacheRecoveryTimeStart)
 
 	log.Println("starting web server...")
 
@@ -92,6 +94,5 @@ func NewHttp(configHttp *config.Http, repo *repository.Repository, recoveryRequi
 	handler := external.CheckPermission(mux)
 	handler = external.Logger(handler)
 	handler = external.SetCors(handler)
-	log.Println("server started on", configHttp.Host+":"+configHttp.Port)
-	log.Fatal(http.ListenAndServe(configHttp.Host+":"+configHttp.Port, handler))
+	log.Fatal(http.ListenAndServe(configHttp.Host+":"+configHttp.Port, handler), "server work time:", time.Since(cacheRecoveryTimeStart))
 }

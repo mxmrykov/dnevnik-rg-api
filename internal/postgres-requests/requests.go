@@ -44,7 +44,9 @@ const (
 	    price smallint,
 	    mark smallint,
 	    review text,
-	    scheduled boolean
+	    scheduled boolean,
+		classType varchar(10),
+		isOpenToSignup boolean
 	)
 	`
 	InitTablePasswords = `
@@ -142,20 +144,18 @@ const (
 	GetAllAdmins = `
 	SELECT * FROM admins
 	`
+	GetPasswordCheck = `
+	SELECT checksum, token FROM passwords WHERE key = $1;
+	`
 	Auth = `
-	SELECT key, token, 'ADMIN' AS role
-	FROM passwords WHERE key = $1 AND checksum = $2
-	AND EXISTS (SELECT * FROM admins WHERE admins.key = passwords.key)
+	SELECT 'ADMIN' AS role
+	WHERE EXISTS (SELECT * FROM admins WHERE admins.key = $1)
 	UNION
-	SELECT key, token, 'COACH' AS role
-	FROM passwords
-	WHERE key = $1 AND checksum = $2
-	AND EXISTS (SELECT * FROM coach WHERE coach.key = passwords.key)
+	SELECT 'COACH' AS role
+	WHERE EXISTS (SELECT * FROM coach WHERE coach.key = $1)
 	UNION
-	SELECT key, token, 'PUPIL' AS role
-	FROM passwords
-	WHERE key = $1 AND checksum = $2
-	AND EXISTS (SELECT * FROM pupil WHERE pupil.key = passwords.key);
+	SELECT 'PUPIL' AS role
+	WHERE EXISTS (SELECT * FROM pupil WHERE pupil.key = $1);
 	`
 	GetCoachNearestBirthdays = `
 	SELECT key, fio, birthday FROM pupil WHERE coach = $1;
