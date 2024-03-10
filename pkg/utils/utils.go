@@ -5,13 +5,9 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
-	"io"
 	"log"
 	"math/rand"
-	"mime/multipart"
-	"net/http"
 	"os"
-	"os/exec"
 	"strconv"
 	"time"
 
@@ -246,49 +242,4 @@ func genTimeTable() map[string]struct {
 		}{General: true, HalfHourFree: true, HourFree: true, OneHalfHourFree: true, TwoHourFree: true, TwoHalfHourFree: true}
 	}
 	return timeTable
-}
-
-func SendTgTechPgPingAlert(token, shard, attempts string) {
-	buf, err := os.Open("pkg/storage/pg_bad_ping.jpg")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer buf.Close()
-
-	body := &bytes.Buffer{}
-	writer := multipart.NewWriter(body)
-
-	chatID := "1242802644"
-	_ = writer.WriteField("chat_id", chatID)
-	_ = writer.WriteField("parse_mode", "markdown")
-	_ = writer.WriteField("caption",
-		"*ALERT*\r\nOne of the shard was currently unavailable for _"+
-			attempts+"_ attempts.\r\n\r\n*Shard name*: "+shard+"\r\n*Time*: "+
-			time.Now().Format(time.RFC3339))
-
-	fw, err := writer.CreateFormFile("photo", "pg_bad_ping.jpg")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	_, err = io.Copy(fw, buf)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	writer.Close()
-
-	req, err := http.NewRequest(http.MethodPost, "https://api.telegram.org/bot"+token+"/sendPhoto", bytes.NewReader(body.Bytes()))
-	req.Header.Set("Content-Type", writer.FormDataContentType())
-	client := &http.Client{}
-
-	rsp, _ := client.Do(req)
-
-	if rsp.StatusCode != http.StatusOK {
-		log.Printf("Request failed with response code: %d", rsp.StatusCode)
-	}
-
-	cmd := exec.Command("docker start", shard)
-	err = cmd.Run()
-	log.Printf("Command finished with error: %v", err)
 }
