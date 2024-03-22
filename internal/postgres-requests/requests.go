@@ -34,8 +34,8 @@ const (
 	InitTableClasses = `
 	CREATE TABLE IF NOT EXISTS classes (
 	    UDID bigserial PRIMARY KEY,
-	    key integer,
-	    pupil integer,
+	    key bigint,
+	    pupil integer[],
 	    coach integer,
 	    class_date text,
 	    class_time varchar(5),
@@ -46,6 +46,7 @@ const (
 	    review text,
 	    scheduled boolean,
 		classType varchar(10),
+	    pupilCount int,
 		isOpenToSignup boolean
 	)
 	`
@@ -161,6 +162,16 @@ const (
 	SELECT key, fio, birthday FROM pupil WHERE coach = $1;
 	`
 	GetCoachSchedule = `
-	SELECT udid, key, pupil, coach, class_date, class_time, class_dur FROM classes WHERE coach = $1 AND class_date = $2;
+	SELECT key, pupil, coach, class_date, class_time, class_dur FROM classes WHERE coach = $1 AND class_date = $2;
+	`
+	UpdateOldToken = `
+	UPDATE passwords SET token = $2, last_update = $3 WHERE key = $1;
+	`
+	CreateClassIfNotExists = `
+	INSERT Into classes (key, pupil, coach, class_date, class_time, class_dur, price, scheduled, classtype, pupilcount, isopentosignup)
+	VALUES ($1, $2, $3, $4, $5, $6, $7, true, $8, $9, true) returning key;
+	`
+	IfClassAvail = `
+	SELECT COUNT(*) FROM classes WHERE coach = $1 AND class_date = $2 AND class_time = $3;
 	`
 )

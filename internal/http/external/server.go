@@ -28,6 +28,7 @@ type Server interface {
 	GetAllPupilsList(write http.ResponseWriter, request *http.Request)
 
 	GetCoachSchedule(write http.ResponseWriter, request *http.Request)
+	CreateClass(write http.ResponseWriter, request *http.Request)
 
 	Authorize(write http.ResponseWriter, request *http.Request)
 
@@ -70,6 +71,7 @@ const (
 	GetPupilsList     = "/users/pupil/list"
 
 	GetCoachSchedule = "/classes/coach/schedule"
+	CreateNewClass   = "/classes/new"
 
 	AuthRoute = "/auth"
 

@@ -1,6 +1,7 @@
 package external
 
 import (
+	"dnevnik-rg.ru/pkg/utils"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -41,7 +42,14 @@ func (s *server) Authorize(write http.ResponseWriter, request *http.Request) {
 		WriteResponse(write, "Неверные данные для входа", true, http.StatusUnauthorized)
 		return
 	}
-	log.Println(auth)
+	token, _ := utils.SetLongJwt(userId, decoded.Checksum, "ADMIN")
+	if updErr := s.Repository.AutoUpdateToken(token, userId); updErr != nil {
+		log.Printf("error returns upd user token: %v\n", updErr)
+		write.WriteHeader(http.StatusInternalServerError)
+		WriteResponse(write, "Неверные данные для входа", true, http.StatusInternalServerError)
+		return
+	}
+	auth, _ = s.Repository.Authorize(userId, decoded.Checksum)
 	write.WriteHeader(http.StatusOK)
 	WriteDataResponse(write, "Данные авторизации получены", false, http.StatusOK, auth)
 	return

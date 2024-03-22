@@ -8,7 +8,9 @@ import (
 	"log"
 	"math/rand"
 	"os"
+	"reflect"
 	"strconv"
+	"strings"
 	"time"
 
 	"dnevnik-rg.ru/internal/models"
@@ -32,7 +34,7 @@ func SetLongJwt(key int, checksum, role string) (string, error) {
 		CheckSum: checksum,
 		Role:     role,
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: int64(key + 5184000),
+			ExpiresAt: time.Now().Unix() + 5184000,
 			Issuer:    os.Getenv("DEPLOY"),
 		},
 	}
@@ -140,14 +142,16 @@ func GetNearestBdays(bList []requests.BirthDayList) []requests.BirthDayList {
 	return finalBdayList
 }
 
-func GetAvailClassesTimesAlgo(classes []models.ClassMainInfo) map[string]struct {
+type schedule map[string]*struct {
 	General         bool `json:"general"`
 	HalfHourFree    bool `json:"half_hour_free"`
 	HourFree        bool `json:"hour_free"`
 	OneHalfHourFree bool `json:"one_half_hour_free"`
 	TwoHourFree     bool `json:"two_hour_free"`
 	TwoHalfHourFree bool `json:"two_half_hour_free"`
-} {
+}
+
+func GetAvailClassesTimesAlgo(classes []models.ClassMainInfo) schedule {
 	timeTable := genTimeTable()
 	timeLayout := "15:04"
 	for _, class := range classes {
@@ -159,61 +163,28 @@ func GetAvailClassesTimesAlgo(classes []models.ClassMainInfo) map[string]struct 
 			log.Printf("err parsing time: %v", err)
 			continue
 		}
-		// todo: придумать нормальный алгос для перебора и установки досутпного времени
-		classTime = classTime.Add(-30 * time.Minute)
-		result := classTime.Format(timeLayout)
-		entry = timeTable[result]
-		entry.HalfHourFree = false
-		timeTable[result] = entry
-
-		classTime, _ = time.Parse(timeLayout, result)
-		classTime = classTime.Add(-30 * time.Minute)
-		result = classTime.Format(timeLayout)
-		entry = timeTable[result]
-		entry.HourFree = false
-		timeTable[result] = entry
-
-		classTime, _ = time.Parse(timeLayout, result)
-		classTime = classTime.Add(-30 * time.Minute)
-		result = classTime.Format(timeLayout)
-		entry = timeTable[result]
-		entry.OneHalfHourFree = false
-		timeTable[result] = entry
-
-		classTime, _ = time.Parse(timeLayout, result)
-		classTime = classTime.Add(-30 * time.Minute)
-		result = classTime.Format(timeLayout)
-		entry = timeTable[result]
-		entry.TwoHourFree = false
-		timeTable[result] = entry
-
-		classTime, _ = time.Parse(timeLayout, result)
-		classTime = classTime.Add(-30 * time.Minute)
-		result = classTime.Format(timeLayout)
-		entry = timeTable[result]
-		entry.TwoHalfHourFree = false
-		timeTable[result] = entry
+		class.ClassDuration = strings.Replace(class.ClassDuration, ":", "h", 1) + "m"
+		classDur, err := time.ParseDuration(class.ClassDuration)
+		if err != nil {
+			log.Printf("err parsing time: %v", err)
+			continue
+		}
+		for i := classTime; i.Before(
+			classTime.Add(classDur + 30*time.Minute),
+		); i = i.Add(30 * time.Minute) {
+			fmt.Println(i)
+			classTimeString := i.Format(timeLayout)
+			timeTable[classTimeString].General = false
+		}
+		classTime = classTime.Add(-150 * time.Minute)
+		timeTable.setTimes(classTime)
 	}
 	return timeTable
 }
 
-func genTimeTable() map[string]struct {
-	General         bool `json:"general"`
-	HalfHourFree    bool `json:"half_hour_free"`
-	HourFree        bool `json:"hour_free"`
-	OneHalfHourFree bool `json:"one_half_hour_free"`
-	TwoHourFree     bool `json:"two_hour_free"`
-	TwoHalfHourFree bool `json:"two_half_hour_free"`
-} {
+func genTimeTable() schedule {
 	var (
-		timeTable = make(map[string]struct {
-			General         bool `json:"general"`
-			HalfHourFree    bool `json:"half_hour_free"`
-			HourFree        bool `json:"hour_free"`
-			OneHalfHourFree bool `json:"one_half_hour_free"`
-			TwoHourFree     bool `json:"two_hour_free"`
-			TwoHalfHourFree bool `json:"two_half_hour_free"`
-		})
+		timeTable  = make(schedule)
 		lastHour   = 9
 		timeString string
 	)
@@ -232,7 +203,7 @@ func genTimeTable() map[string]struct {
 			}
 			lastHour += 1
 		}
-		timeTable[timeString] = struct {
+		timeTable[timeString] = &struct {
 			General         bool `json:"general"`
 			HalfHourFree    bool `json:"half_hour_free"`
 			HourFree        bool `json:"hour_free"`
@@ -242,4 +213,15 @@ func genTimeTable() map[string]struct {
 		}{General: true, HalfHourFree: true, HourFree: true, OneHalfHourFree: true, TwoHourFree: true, TwoHalfHourFree: true}
 	}
 	return timeTable
+}
+
+func (s *schedule) setTimes(classTime time.Time) {
+	for i := 1; i < 6; i++ {
+		ct := classTime.Add(30 * time.Minute * time.Duration(i))
+		result := (*s)[ct.Format("15:04")]
+		for j := 1; j < i+1; j++ {
+			reflect.ValueOf(result).Elem().FieldByIndex([]int{6 - j}).SetBool(false)
+		}
+		(*s)[ct.Format("15:04")] = result
+	}
 }

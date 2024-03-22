@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"dnevnik-rg.ru/internal/models"
 	requests "dnevnik-rg.ru/internal/models/request"
@@ -493,16 +494,18 @@ func (r *Repository) GetBirthdaysList(key int) ([]requests.BirthDayList, error) 
 
 func (r *Repository) GetCoachSchedule(key int, date string) ([]models.ClassMainInfo, error) {
 	var classes []models.ClassMainInfo
+
 	rows, err := r.Shard3.Query(
 		context.Background(),
 		pgRequests.GetCoachSchedule,
 		key,
 		date,
 	)
+
+	log.Println(key, date)
 	for rows.Next() {
 		var class models.ClassMainInfo
 		if errScan := rows.Scan(
-			nil,
 			&class.Key,
 			&class.Pupil,
 			&class.Coach,
@@ -512,10 +515,55 @@ func (r *Repository) GetCoachSchedule(key int, date string) ([]models.ClassMainI
 		); errScan != nil {
 			log.Println("error while scanning main class info: ", errScan)
 		}
+		log.Println(class)
 		classes = append(classes, class)
 	}
 	if err != nil {
 		return nil, err
 	}
+	log.Println(classes)
 	return classes, nil
+}
+
+func (r *Repository) AutoUpdateToken(token string, key int) error {
+	_, err := r.Shard2.Exec(
+		context.Background(),
+		pgRequests.UpdateOldToken,
+		key, token, time.Now().Format(time.RFC3339),
+	)
+	return err
+}
+
+func (r *Repository) CreateClass(class requests.CreateClass) (id int, err error) {
+	var count int8
+	err = r.Shard3.QueryRow(
+		context.Background(),
+		pgRequests.IfClassAvail, class.Coach,
+		class.ClassDate,
+		class.ClassTime,
+	).Scan(
+		&count,
+	)
+	if count > 0 {
+		id = -1
+
+		return
+	}
+	err = r.Shard3.QueryRow(
+		context.Background(),
+		pgRequests.CreateClassIfNotExists,
+		time.Now().UnixMilli(),
+		class.Pupil,
+		class.Coach,
+		class.ClassDate,
+		class.ClassTime,
+		class.Duration,
+		class.Price,
+		class.ClassType,
+		len(class.Pupil),
+	).Scan(
+		&id,
+	)
+
+	return
 }

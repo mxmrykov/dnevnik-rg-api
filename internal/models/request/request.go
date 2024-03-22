@@ -51,4 +51,13 @@ type (
 		Fio      string `json:"fio"`
 		Birthday string `json:"birthday"`
 	}
+	CreateClass struct {
+		Pupil     []int  `json:"pupil"`
+		Coach     int    `json:"coach"`
+		ClassDate string `json:"classDate"`
+		ClassTime string `json:"classTime"`
+		Duration  string `json:"duration"`
+		Price     int    `json:"price"`
+		ClassType string `json:"classType"`
+	}
 )

@@ -29,9 +29,9 @@ services:
       POSTGRES_PASSWORD: '058cb8ee6a01b88f'
     ports:
       - '127.0.0.1:5590:5432'
-  server:
-    build:
-      context: .
-      target: final
-    ports:
-      - "8000:8000"
+#  server:
+#    build:
+#      context: .
+#      target: final
+#    ports:
+#      - "8000:8000"
