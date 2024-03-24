@@ -54,6 +54,7 @@ func (s *server) CreateClass(write http.ResponseWriter, request *http.Request) {
 		WriteResponse(write, "Неизвестный метод", true, http.StatusNotFound)
 		return
 	}
+
 	if isCoach, _ := s.checkCoachExistence(write, request, false); !isCoach {
 		if ok, _ := s.checkExistence(write, request); !ok {
 			return

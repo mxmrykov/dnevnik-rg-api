@@ -17,7 +17,7 @@ func WriteResponse(write http.ResponseWriter, message string, isError bool, stat
 		write.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	write.Write(resp)
+	_, _ = write.Write(resp)
 }
 
 func WriteDataResponse(write http.ResponseWriter, message string, isError bool, statusCode int, data interface{}) {
@@ -31,5 +31,5 @@ func WriteDataResponse(write http.ResponseWriter, message string, isError bool, 
 		write.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	write.Write(resp)
+	_, _ = write.Write(resp)
 }
