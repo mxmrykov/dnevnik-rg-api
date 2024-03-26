@@ -169,7 +169,7 @@ const (
 	`
 	CreateClassIfNotExists = `
 	INSERT Into classes (key, pupil, coach, class_date, class_time, class_dur, price, scheduled, classtype, pupilcount, isopentosignup)
-	VALUES ($1, $2, $3, $4, $5, $6, $7, true, $8, $9, true) returning key;
+	VALUES ($1, $2, $3, $4, $5, $6, $7, true, $8, $9, $10) returning key;
 	`
 	IfClassAvail = `
 	SELECT COUNT(*) FROM classes WHERE coach = $1 AND class_date = $2 AND class_time = $3;

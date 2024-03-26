@@ -115,6 +115,22 @@ func (s *server) CreateClass(write http.ResponseWriter, request *http.Request) {
 
 	class.Duration = decoded.Duration
 
+	if decoded.Capacity < 1 {
+		write.WriteHeader(http.StatusBadRequest)
+		WriteResponse(write, "Неверное количество допустимых учениц", true, http.StatusBadRequest)
+		return
+	}
+
+	class.Capacity = decoded.Capacity
+
+	if decoded.Price < 1 {
+		write.WriteHeader(http.StatusBadRequest)
+		WriteResponse(write, "Слишком маленькая цена", true, http.StatusBadRequest)
+		return
+	}
+
+	class.Price = decoded.Price
+
 	newClassId, err = s.Repository.CreateClass(class)
 	if err != nil {
 		log.Println("err at creating class:", err)

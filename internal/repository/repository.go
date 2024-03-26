@@ -560,7 +560,8 @@ func (r *Repository) CreateClass(class requests.CreateClass) (id int, err error)
 		class.Duration,
 		class.Price,
 		class.ClassType,
-		len(class.Pupil),
+		class.Capacity,
+		class.IsOpen,
 	).Scan(
 		&id,
 	)

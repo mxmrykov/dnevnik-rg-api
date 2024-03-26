@@ -155,9 +155,7 @@ func GetAvailClassesTimesAlgo(classes []models.ClassMainInfo) schedule {
 	timeTable := genTimeTable()
 	timeLayout := "15:04"
 	for _, class := range classes {
-		entry := timeTable[class.ClassTime]
-		entry.General = false
-		timeTable[class.ClassTime] = entry
+		timeTable[class.ClassTime].General = false
 		classTime, err := time.Parse(timeLayout, class.ClassTime)
 		if err != nil {
 			log.Printf("err parsing time: %v", err)
@@ -172,7 +170,6 @@ func GetAvailClassesTimesAlgo(classes []models.ClassMainInfo) schedule {
 		for i := classTime; i.Before(
 			classTime.Add(classDur + 30*time.Minute),
 		); i = i.Add(30 * time.Minute) {
-			fmt.Println(i)
 			classTimeString := i.Format(timeLayout)
 			timeTable[classTimeString].General = false
 		}
@@ -218,6 +215,9 @@ func genTimeTable() schedule {
 func (s *schedule) setTimes(classTime time.Time) {
 	for i := 1; i < 6; i++ {
 		ct := classTime.Add(30 * time.Minute * time.Duration(i))
+		if ct.Hour() < 9 {
+			continue
+		}
 		result := (*s)[ct.Format("15:04")]
 		for j := 1; j < i+1; j++ {
 			reflect.ValueOf(result).Elem().FieldByIndex([]int{6 - j}).SetBool(false)

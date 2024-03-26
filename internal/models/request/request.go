@@ -53,11 +53,13 @@ type (
 	}
 	CreateClass struct {
 		Pupil     []int  `json:"pupil"`
+		Capacity  int    `json:"capacity"`
 		Coach     int    `json:"coach"`
 		ClassDate string `json:"classDate"`
 		ClassTime string `json:"classTime"`
 		Duration  string `json:"duration"`
 		Price     int    `json:"price"`
 		ClassType string `json:"classType"`
+		IsOpen    bool   `json:"isOpen"`
 	}
 )
