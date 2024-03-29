@@ -1,6 +1,7 @@
 package external
 
 import (
+	"dnevnik-rg.ru/internal/models"
 	requests "dnevnik-rg.ru/internal/models/request"
 	"encoding/json"
 	"log"
@@ -147,5 +148,66 @@ func (s *server) CreateClass(write http.ResponseWriter, request *http.Request) {
 
 	write.WriteHeader(http.StatusOK)
 	WriteDataResponse(write, "Занятие успешно создан", false, http.StatusOK, newClassId)
+	return
+}
+
+func (s *server) GetClassesTodayAdmin(write http.ResponseWriter, request *http.Request) {
+	if request.Method != http.MethodGet {
+		write.WriteHeader(http.StatusNotFound)
+		WriteResponse(write, "Неизвестный метод", true, http.StatusNotFound)
+		return
+	}
+
+	if ok, _ := s.checkExistence(write, request); !ok {
+		return
+	}
+
+	var (
+		err  error
+		date string
+		res  []models.ShortStringClassInfo
+	)
+
+	date = request.URL.Query().Get("date")
+
+	classes, err := s.Repository.GetAdminClassesForToday(date)
+
+	if err != nil {
+		log.Println("err at creating class:", err)
+		write.WriteHeader(http.StatusInternalServerError)
+		WriteResponse(write, "Произошла ошибка на сервере", true, http.StatusInternalServerError)
+		return
+	}
+
+	for _, class := range classes {
+		var pupils []int
+		for _, pupilID := range class.Pupils {
+			pupils = append(pupils, pupilID)
+		}
+		stringPupils, err := s.Repository.GetPupilsNameByIds(pupils)
+		if err != nil {
+			log.Println("err at getting pupils names:", err)
+			write.WriteHeader(http.StatusInternalServerError)
+			WriteResponse(write, "Произошла ошибка на сервере", true, http.StatusInternalServerError)
+			return
+		}
+
+		response := models.ShortStringClassInfo{
+			Key:           class.Key,
+			Coach:         class.Coach,
+			Pupils:        make([]string, 0, len(pupils)),
+			ClassTime:     class.ClassTime,
+			ClassDuration: class.ClassDuration,
+		}
+
+		for _, pupil := range stringPupils {
+			response.Pupils = append(response.Pupils, pupil)
+		}
+
+		res = append(res, response)
+	}
+
+	write.WriteHeader(http.StatusOK)
+	WriteDataResponse(write, "Список занятий на сегодня получен", false, http.StatusOK, res)
 	return
 }

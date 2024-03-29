@@ -63,7 +63,7 @@ func NewHttp(configHttp *config.Http, repo *repository.Repository, recoveryRequi
 	)
 	mux.HandleFunc(external.GroupV1+external.GetCoachesList, server.GetAllCoachList)
 
-	//Group Pupil
+	//Group Pupils
 	mux.HandleFunc(external.GroupV1+external.CreatePupilRoute, server.CreatePupil)
 	mux.Handle(external.GroupV1+external.GetPupilRoute,
 		external.CheckPupilId(http.HandlerFunc(server.GetPupil)),
@@ -80,6 +80,8 @@ func NewHttp(configHttp *config.Http, repo *repository.Repository, recoveryRequi
 	//Group Classes
 	mux.HandleFunc(external.GroupV1+external.GetCoachSchedule, server.GetCoachSchedule)
 	mux.HandleFunc(external.GroupV1+external.CreateNewClass, server.CreateClass)
+	mux.HandleFunc(external.GroupV1+external.GetClassesForDayAdmin, server.GetClassesTodayAdmin)
+	mux.HandleFunc(external.GroupV1+external.GetClassesForDayAdmin, server.GetClassesTodayAdmin)
 
 	//Group auth
 	mux.HandleFunc(external.GroupV1+external.AuthRoute, server.Authorize)

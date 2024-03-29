@@ -174,4 +174,10 @@ const (
 	IfClassAvail = `
 	SELECT COUNT(*) FROM classes WHERE coach = $1 AND class_date = $2 AND class_time = $3;
 	`
+	GetClassesForTodayAdmin = `
+	SELECT key, pupil, coach, class_time, class_dur FROM classes WHERE class_date = $1;
+	`
+	GetPupilsName = `
+	SELECT fio FROM pupil WHERE key = any($1)
+	`
 )

@@ -31,6 +31,8 @@ services:
       POSTGRES_DB: 'dnevnik-rg.shard-3'
       POSTGRES_USER: '30c128f7'
       POSTGRES_PASSWORD: '058cb8ee6a01b88f'
+    volumes:
+      - ./migrations/class.sql:/docker-entrypoint-initdb.d/init.shards.sql:ro
     ports:
       - '127.0.0.1:5590:5432'
 #  server:

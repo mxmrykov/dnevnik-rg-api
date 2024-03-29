@@ -502,12 +502,11 @@ func (r *Repository) GetCoachSchedule(key int, date string) ([]models.ClassMainI
 		date,
 	)
 
-	log.Println(key, date)
 	for rows.Next() {
 		var class models.ClassMainInfo
 		if errScan := rows.Scan(
 			&class.Key,
-			&class.Pupil,
+			&class.Pupils,
 			&class.Coach,
 			&class.ClassDate,
 			&class.ClassTime,
@@ -521,7 +520,6 @@ func (r *Repository) GetCoachSchedule(key int, date string) ([]models.ClassMainI
 	if err != nil {
 		return nil, err
 	}
-	log.Println(classes)
 	return classes, nil
 }
 
@@ -567,4 +565,66 @@ func (r *Repository) CreateClass(class requests.CreateClass) (id int, err error)
 	)
 
 	return
+}
+
+func (r *Repository) GetAdminClassesForToday(date string) ([]models.ShortClassInfo, error) {
+	var classes []models.ShortClassInfo
+
+	rows, err := r.Shard3.Query(
+		context.Background(),
+		pgRequests.GetClassesForTodayAdmin,
+		date,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var class models.ShortClassInfo
+		if errScan := rows.Scan(
+			&class.Key,
+			&class.Pupils,
+			&class.Coach,
+			&class.ClassTime,
+			&class.ClassDuration,
+		); errScan != nil {
+			log.Println("error while scanning main class info: ", errScan)
+		}
+		classes = append(classes, class)
+	}
+
+	if rows.Err() != nil {
+		return nil, rows.Err()
+	}
+	return classes, nil
+}
+
+func (r *Repository) GetPupilsNameByIds(ids []int) ([]string, error) {
+	var classes []string
+
+	rows, err := r.Shard1.Query(
+		context.Background(),
+		pgRequests.GetPupilsName,
+		ids,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var class string
+		if errScan := rows.Scan(
+			&class,
+		); errScan != nil {
+			log.Println("error while scanning main class info: ", errScan)
+		}
+		classes = append(classes, class)
+	}
+
+	if rows.Err() != nil {
+		return nil, rows.Err()
+	}
+	return classes, nil
 }

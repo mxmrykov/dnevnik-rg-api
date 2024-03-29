@@ -170,6 +170,9 @@ func GetAvailClassesTimesAlgo(classes []models.ClassMainInfo) schedule {
 		for i := classTime; i.Before(
 			classTime.Add(classDur + 30*time.Minute),
 		); i = i.Add(30 * time.Minute) {
+			if i.Hour() >= 20 {
+				continue
+			}
 			classTimeString := i.Format(timeLayout)
 			timeTable[classTimeString].General = false
 		}

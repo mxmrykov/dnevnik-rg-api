@@ -29,6 +29,7 @@ type Server interface {
 
 	GetCoachSchedule(write http.ResponseWriter, request *http.Request)
 	CreateClass(write http.ResponseWriter, request *http.Request)
+	GetClassesTodayAdmin(write http.ResponseWriter, request *http.Request)
 
 	Authorize(write http.ResponseWriter, request *http.Request)
 
@@ -70,8 +71,11 @@ const (
 	DeletePupilRoute  = "/users/pupil/delete"
 	GetPupilsList     = "/users/pupil/list"
 
-	GetCoachSchedule = "/classes/coach/schedule"
-	CreateNewClass   = "/classes/new"
+	GetCoachSchedule      = "/classes/coach/schedule"
+	CreateNewClass        = "/classes/new"
+	GetClassesForDayAdmin = "/classes/get/today/admin"
+	GetClassesForDayCoach = "/classes/get/today/coach"
+	GetClassesForDayPupil = "/classes/get/today/pupil"
 
 	AuthRoute = "/auth"
 
