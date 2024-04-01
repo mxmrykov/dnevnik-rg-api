@@ -31,8 +31,8 @@ func CheckPermission(next http.Handler) http.Handler {
 		Auth := request.Header.Get("Authorization")
 		if len(xUserId) == 0 || len(Auth) == 0 {
 			log.Println("missing some required params")
-			writer.WriteHeader(http.StatusBadRequest)
-			WriteResponse(writer, "Ошибка авторизации", true, http.StatusBadRequest)
+			writer.WriteHeader(http.StatusUnauthorized)
+			WriteResponse(writer, "Ошибка авторизации", true, http.StatusUnauthorized)
 			return
 		}
 		token, errParse := jwt.Parse(Auth, func(token *jwt.Token) (interface{}, error) {

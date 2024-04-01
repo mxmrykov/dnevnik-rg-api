@@ -3,6 +3,7 @@ package external
 import (
 	"dnevnik-rg.ru/internal/models"
 	requests "dnevnik-rg.ru/internal/models/request"
+	"dnevnik-rg.ru/internal/models/response"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -191,13 +192,24 @@ func (s *server) GetClassesTodayAdmin(write http.ResponseWriter, request *http.R
 			WriteResponse(write, "Произошла ошибка на сервере", true, http.StatusInternalServerError)
 			return
 		}
+		coachString, err := s.Repository.GetCoachNameById(class.Coach)
+		if err != nil {
+			log.Println("err at getting pupils names:", err)
+			write.WriteHeader(http.StatusInternalServerError)
+			WriteResponse(write, "Произошла ошибка на сервере", true, http.StatusInternalServerError)
+			return
+		}
 
 		response := models.ShortStringClassInfo{
-			Key:           class.Key,
-			Coach:         class.Coach,
-			Pupils:        make([]string, 0, len(pupils)),
-			ClassTime:     class.ClassTime,
-			ClassDuration: class.ClassDuration,
+			Key:            class.Key,
+			Coach:          coachString,
+			Pupils:         make([]string, 0, len(pupils)),
+			ClassTime:      class.ClassTime,
+			ClassDuration:  class.ClassDuration,
+			ClassType:      class.ClassType,
+			PupilCount:     class.PupilCount,
+			Scheduled:      class.Scheduled,
+			IsOpenToSignUp: class.IsOpenToSignUp,
 		}
 
 		for _, pupil := range stringPupils {
@@ -209,5 +221,41 @@ func (s *server) GetClassesTodayAdmin(write http.ResponseWriter, request *http.R
 
 	write.WriteHeader(http.StatusOK)
 	WriteDataResponse(write, "Список занятий на сегодня получен", false, http.StatusOK, res)
+	return
+}
+
+func (s *server) GetClassesTodayCoach(write http.ResponseWriter, request *http.Request) {
+
+}
+func (s *server) GetClassesTodayPupil(write http.ResponseWriter, request *http.Request) {
+
+}
+
+func (s *server) CancelClass(write http.ResponseWriter, request *http.Request) {
+	if request.Method != http.MethodPost {
+		write.WriteHeader(http.StatusNotFound)
+		WriteResponse(write, "Неизвестный метод", true, http.StatusNotFound)
+		return
+	}
+
+	classIdString := request.URL.Query().Get("classId")
+	classId, errConv := strconv.Atoi(classIdString)
+
+	if errConv != nil {
+		log.Println("err converting classId from query:", errConv)
+		write.WriteHeader(http.StatusBadRequest)
+		WriteResponse(write, "Произошла ошибка на сервере", true, http.StatusBadRequest)
+		return
+	}
+
+	if err := s.Repository.CancelClass(classId); err != nil {
+		log.Println("err at creating class:", err)
+		write.WriteHeader(http.StatusInternalServerError)
+		WriteResponse(write, "Произошла ошибка на сервере", true, http.StatusInternalServerError)
+		return
+	}
+
+	write.WriteHeader(http.StatusOK)
+	WriteDataResponse(write, "Занятие отменено", false, http.StatusOK, response.CanceledClass{Canceled: true, Key: classId})
 	return
 }

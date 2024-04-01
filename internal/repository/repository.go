@@ -207,7 +207,7 @@ func (r *Repository) NewPassword(password models.Password) error {
 }
 
 func (r *Repository) DeletePassword(key int) error {
-	_, errNewAdmin := r.Shard2.Exec(
+	_, errNewAdmin := r.Shard3.Exec(
 		context.Background(),
 		pgRequests.DeletePassword,
 		key,
@@ -385,10 +385,25 @@ func (r *Repository) GetPupilFull(key int) (response.PupilFull, error) {
 		&pupil.CoachReview,
 		&pupil.LogoUri,
 		&pupil.Role,
+	)
+
+	if err != nil {
+		return response.PupilFull{}, err
+	}
+	err = r.Shard2.QueryRow(
+		context.Background(),
+		`select checksum, token, last_update from passwords where key = $1`,
+		key,
+	).Scan(
 		&pupil.Private.CheckSum,
 		&pupil.Private.Token,
 		&pupil.Private.LastUpdate,
 	)
+
+	if err != nil {
+		return response.PupilFull{}, err
+	}
+
 	return pupil, err
 }
 
@@ -588,6 +603,11 @@ func (r *Repository) GetAdminClassesForToday(date string) ([]models.ShortClassIn
 			&class.Coach,
 			&class.ClassTime,
 			&class.ClassDuration,
+			&class.ClassType,
+			&class.Scheduled,
+			&class.PupilCount,
+
+			&class.IsOpenToSignUp,
 		); errScan != nil {
 			log.Println("error while scanning main class info: ", errScan)
 		}
@@ -627,4 +647,25 @@ func (r *Repository) GetPupilsNameByIds(ids []int) ([]string, error) {
 		return nil, rows.Err()
 	}
 	return classes, nil
+}
+
+func (r *Repository) GetCoachNameById(id int) (string, error) {
+	var coach string
+	err := r.Shard1.QueryRow(
+		context.Background(),
+		"select fio from coach where key = $1",
+		id,
+	).Scan(
+		&coach,
+	)
+	return coach, err
+}
+
+func (r *Repository) CancelClass(classId int) error {
+	_, err := r.Shard3.Exec(
+		context.Background(),
+		pgRequests.CancelClass,
+		classId,
+	)
+	return err
 }

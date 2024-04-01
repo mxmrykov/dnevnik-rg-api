@@ -90,8 +90,8 @@ func (s *server) CreatePupil(write http.ResponseWriter, request *http.Request) {
 		return
 	}
 	if errNewPassword := s.Repository.NewPassword(newPassword); errNewPassword != nil {
-		log.Printf("error creating new password for coach: %v\n", errNewPassword)
-		if errClearingBrokenAdmin := s.Repository.DeleteAdmin(key); errClearingBrokenAdmin != nil {
+		log.Printf("error creating new password for pupil: %v\n", errNewPassword)
+		if errClearingBrokenAdmin := s.Repository.DeletePupil(key); errClearingBrokenAdmin != nil {
 			log.Printf("error deleting new pupil without password: %v\n", errClearingBrokenAdmin)
 		}
 		log.Println("new pupil without password cleared")

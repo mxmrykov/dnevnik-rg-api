@@ -6,35 +6,35 @@ services:
     container_name: "pg-shard-1"
     image: postgres:14.0
     volumes:
-      - ./migrations/users.sql:/docker-entrypoint-initdb.d/init.shards.sql:ro
+      - ./migrations/migrations.sql:/docker-entrypoint-initdb.d/init.shards.sql:ro
     environment:
       POSTGRES_DB: 'dnevnik-rg.shard-1'
-      POSTGRES_USER: '30c128f7'
+      POSTGRES_USER: 'c128f7'
       POSTGRES_PASSWORD: '058cb8ee6a01b88f'
     ports:
       - '127.0.0.1:5588:5432'
-  shard-2:
-    container_name: "pg-shard-2"
-    image: postgres:14.0
-    volumes:
-      - ./migrations/passwords.sql:/docker-entrypoint-initdb.d/init.shards.sql:ro
-    environment:
-      POSTGRES_DB: 'dnevnik-rg.shard-2'
-      POSTGRES_USER: '30c128f7'
-      POSTGRES_PASSWORD: '058cb8ee6a01b88f'
-    ports:
-      - '127.0.0.1:5589:5432'
-  shard-3:
-    container_name: "pg-shard-3"
-    image: postgres:14.0
-    environment:
-      POSTGRES_DB: 'dnevnik-rg.shard-3'
-      POSTGRES_USER: '30c128f7'
-      POSTGRES_PASSWORD: '058cb8ee6a01b88f'
-    volumes:
-      - ./migrations/class.sql:/docker-entrypoint-initdb.d/init.shards.sql:ro
-    ports:
-      - '127.0.0.1:5590:5432'
+#  shard-2:
+#    container_name: "pg-shard-2"
+#    image: postgres:14.0
+#    volumes:
+#      - ./migrations/migrations.sql:/docker-entrypoint-initdb.d/init.shards.sql:ro
+#    environment:
+#      POSTGRES_DB: 'dnevnik-rg.shard-2'
+#      POSTGRES_USER: '30c128f7'
+#      POSTGRES_PASSWORD: '058cb8ee6a01b88f'
+#    ports:
+#      - '127.0.0.1:5589:5432'
+#  shard-3:
+#    container_name: "pg-shard-3"
+#    image: postgres:14.0
+#    environment:
+#      POSTGRES_DB: 'dnevnik-rg.shard-3'
+#      POSTGRES_USER: '30c128f7'
+#      POSTGRES_PASSWORD: '058cb8ee6a01b88f'
+#    volumes:
+#      - ./migrations/migrations.sql:/docker-entrypoint-initdb.d/init.shards.sql:ro
+#    ports:
+#      - '127.0.0.1:5590:5432'
 #  server:
 #    build:
 #      context: .

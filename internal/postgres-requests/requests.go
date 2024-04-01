@@ -119,15 +119,14 @@ const (
 	DELETE FROM coach WHERE key = $1;
 	`
 	CreatePupil = `
-	INSERT INTO pupil (key, fio, date_reg, coach, home_city, training_city, birthday, about, coach_review, logo_uri, role) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+	INSERT INTO pupil (key, fio, date_reg, coach, home_city, training_city, birthday, about, coach_review, logo_uri, role) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) on conflict do nothing
 	`
 	GetPupil = `
 	SELECT * FROM pupil WHERE key = $1;
 	`
 	GetPupilFull = `
-	SELECT pupil.key, fio, date_reg, coach, home_city, training_city, birthday, about, coach_review, logo_uri, role, checksum, token, last_update
-    FROM pupil
-	LEFT JOIN public.passwords p on pupil.key = p.key WHERE pupil.key = $1;
+	SELECT pupil.key, fio, date_reg, coach, home_city, training_city, birthday, about, coach_review, logo_uri, role
+    FROM pupil WHERE key = $1;
 	`
 	IsPupilExists = `
 	SELECT COUNT(*) FROM pupil WHERE key = $1;`
@@ -175,9 +174,12 @@ const (
 	SELECT COUNT(*) FROM classes WHERE coach = $1 AND class_date = $2 AND class_time = $3;
 	`
 	GetClassesForTodayAdmin = `
-	SELECT key, pupil, coach, class_time, class_dur FROM classes WHERE class_date = $1;
+	SELECT key, pupil, coach, class_time, class_dur, classtype, pupilcount, scheduled, isopentosignup FROM classes WHERE class_date = $1 ORDER by class_time;
 	`
 	GetPupilsName = `
 	SELECT fio FROM pupil WHERE key = any($1)
+	`
+	CancelClass = `
+	UPDATE classes SET scheduled = false WHERE key = $1;
 	`
 )

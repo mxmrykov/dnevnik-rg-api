@@ -54,4 +54,9 @@ type (
 		Token string `json:"token"`
 		Role  string `json:"role"`
 	}
+
+	CanceledClass struct {
+		Canceled bool `json:"canceled"`
+		Key      int  `json:"key"`
+	}
 )
