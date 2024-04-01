@@ -1,13 +1,13 @@
-grant usage on schema users, passwords, classes, notifications, archive to c128f7;
-grant execute on all functions in schema users, passwords, classes, notifications, archive to c128f7;
-grant insert, select, update, delete on all tables in schema users, passwords, classes, notifications, archive to c128f7;
-
-
 create schema if not exists users;
 create schema if not exists passwords;
 create schema if not exists classes;
 create schema if not exists notifications;
 create schema if not exists archive;
+
+grant usage on schema users, passwords, classes, notifications, archive to c128f7;
+grant execute on all functions in schema users, passwords, classes, notifications, archive to c128f7;
+grant insert, select, update, delete on all tables in schema users, passwords, classes, notifications, archive to c128f7;
+
 
 create table if not exists users.admins
 (
@@ -172,22 +172,22 @@ $$;
 create or replace function get_coach(key_ integer)
     returns table
             (
-                key_           integer,
-                fio_           text,
+                key           integer,
+                fio           text,
                 date_reg_      text,
-                home_city_     varchar(30),
-                training_city_ varchar(30),
-                birthday_      text,
-                about_         text,
-                logo_uri_      text,
-                role_          varchar(10)
+                home_city     varchar(30),
+                training_city varchar(30),
+                birthday      text,
+                about         text,
+                logo_uri      text,
+                role          varchar(10)
             )
     security definer
     language plpgsql
 as
 $$
 begin
-    select * from users.coaches where key = key_ and
+    select key, fio, date_reg_, home_city, training_city, birthday, about, logo_uri, role from users.coaches where key = key_;
 end;
 $$;
 
