@@ -228,3 +228,11 @@ func (s *schedule) setTimes(classTime time.Time) {
 		(*s)[ct.Format("15:04")] = result
 	}
 }
+
+func HashSumGen(key int, checksum string) string {
+	secret := key * (key % 5)
+	sum := md5.Sum(
+		[]byte(checksum + strconv.Itoa(secret)),
+	)
+	return hex.EncodeToString(sum[:])
+}

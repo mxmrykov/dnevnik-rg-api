@@ -2,39 +2,29 @@ version:
   "3.8"
 
 services:
-  shard-1:
+  postgres:
     container_name: "pg-shard-1"
     image: postgres:14.0
     volumes:
-      - ./migrations/migrations.sql:/docker-entrypoint-initdb.d/init.shards.sql:ro
+      - ./migrations/schema.sql:/docker-entrypoint-initdb.d/init.shards.sql:ro
     environment:
       POSTGRES_DB: 'dnevnik-rg.shard-1'
       POSTGRES_USER: 'c128f7'
       POSTGRES_PASSWORD: '058cb8ee6a01b88f'
     ports:
       - '127.0.0.1:5588:5432'
-#  shard-2:
-#    container_name: "pg-shard-2"
-#    image: postgres:14.0
-#    volumes:
-#      - ./migrations/migrations.sql:/docker-entrypoint-initdb.d/init.shards.sql:ro
-#    environment:
-#      POSTGRES_DB: 'dnevnik-rg.shard-2'
-#      POSTGRES_USER: '30c128f7'
-#      POSTGRES_PASSWORD: '058cb8ee6a01b88f'
-#    ports:
-#      - '127.0.0.1:5589:5432'
-#  shard-3:
-#    container_name: "pg-shard-3"
-#    image: postgres:14.0
-#    environment:
-#      POSTGRES_DB: 'dnevnik-rg.shard-3'
-#      POSTGRES_USER: '30c128f7'
-#      POSTGRES_PASSWORD: '058cb8ee6a01b88f'
-#    volumes:
-#      - ./migrations/migrations.sql:/docker-entrypoint-initdb.d/init.shards.sql:ro
-#    ports:
-#      - '127.0.0.1:5590:5432'
+  flyway:
+    image: flyway/flyway:10.11
+    depends_on:
+      - postgres
+    command:
+      "-url=jdbc:postgresql://pg-shard-1:5432/dnevnik-rg.shard-1  -locations=filesystem:/flyway/sql -connectRetries=3 migrate"
+    volumes:
+      - ${PWD}/migrations/sql:/flyway/sql
+    env_file:
+      - ${PWD}/migrations/env/.env
+    environment:
+      - FLYWAY_LOCATIONS="filesystem:/flyway/sql"
 #  server:
 #    build:
 #      context: .

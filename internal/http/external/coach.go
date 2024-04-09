@@ -1,15 +1,16 @@
 package external
 
 import (
-	"dnevnik-rg.ru/internal/models"
-	requests "dnevnik-rg.ru/internal/models/request"
-	"dnevnik-rg.ru/pkg/utils"
 	"encoding/json"
 	"log"
 	"net/http"
 	"reflect"
 	"strconv"
 	"time"
+
+	"dnevnik-rg.ru/internal/models"
+	requests "dnevnik-rg.ru/internal/models/request"
+	"dnevnik-rg.ru/pkg/utils"
 )
 
 func (s *server) CreateCoach(write http.ResponseWriter, request *http.Request) {
@@ -63,15 +64,15 @@ func (s *server) CreateCoach(write http.ResponseWriter, request *http.Request) {
 		LastUpdate: timeNow,
 		Token:      token,
 	}
-	if errNewCoach := s.Repository.CreateCoach(newCoach); errNewCoach != nil {
+	if errNewCoach := s.Store.CreateCoach(newCoach); errNewCoach != nil {
 		log.Printf("error creating new coach: %v\n", errNewCoach)
 		write.WriteHeader(http.StatusInternalServerError)
 		WriteResponse(write, "Ошибка создания тренера", true, http.StatusInternalServerError)
 		return
 	}
-	if errNewPassword := s.Repository.NewPassword(newPassword); errNewPassword != nil {
+	if errNewPassword := s.Store.NewPassword(newPassword); errNewPassword != nil {
 		log.Printf("error creating new password for coach: %v\n", errNewPassword)
-		if errClearingBrokenAdmin := s.Repository.DeleteAdmin(key); errClearingBrokenAdmin != nil {
+		if errClearingBrokenAdmin := s.Store.DeleteAdmin(key); errClearingBrokenAdmin != nil {
 			log.Printf("error deleting new coach without password: %v\n", errClearingBrokenAdmin)
 		}
 		log.Println("new coach without password cleared")
@@ -79,7 +80,7 @@ func (s *server) CreateCoach(write http.ResponseWriter, request *http.Request) {
 		WriteResponse(write, "Ошибка создания тренера", true, http.StatusInternalServerError)
 		return
 	}
-	coach, errGetCoach := s.Repository.GetCoachFull(key)
+	coach, errGetCoach := s.Store.GetCoachFull(key)
 	if errGetCoach != nil {
 		log.Printf("error returns new coach data: %v\n", errGetCoach)
 		write.WriteHeader(http.StatusInternalServerError)
@@ -116,7 +117,7 @@ func (s *server) GetCoach(write http.ResponseWriter, request *http.Request) {
 		WriteDataResponse(write, "Тренер получен", false, http.StatusOK, *p)
 		return
 	}
-	coach, errGetCoach := s.Repository.GetCoach(coachId)
+	coach, errGetCoach := s.Store.GetCoach(coachId)
 	if errGetCoach != nil {
 		log.Printf("error returns new coach data: %v\n", errGetCoach)
 		write.WriteHeader(http.StatusNotFound)
@@ -146,7 +147,7 @@ func (s *server) GetCoachFull(write http.ResponseWriter, request *http.Request) 
 		WriteResponse(write, "Произошла ошибка на сервере", true, http.StatusInternalServerError)
 		return
 	}
-	coach, errGetCoach := s.Repository.GetCoachFull(coachId)
+	coach, errGetCoach := s.Store.GetCoachFull(coachId)
 	if errGetCoach != nil {
 		log.Printf("error returns new coach data: %v\n", errGetCoach)
 		write.WriteHeader(http.StatusNotFound)
@@ -213,7 +214,7 @@ func (s *server) UpdateCoach(write http.ResponseWriter, request *http.Request) {
 		return
 	}
 	sql := utils.GenerateUpdateSql("coach", coachId, params, values)
-	errGetCoach := s.Repository.UpdateCoach(sql)
+	errGetCoach := s.Store.UpdateCoach(sql)
 	if errGetCoach != nil {
 		log.Printf("error returns new coach data: %v\n", errGetCoach)
 		write.WriteHeader(http.StatusInternalServerError)
@@ -242,7 +243,7 @@ func (s *server) DeleteCoach(write http.ResponseWriter, request *http.Request) {
 		WriteResponse(write, "Произошла ошибка на сервере", true, http.StatusInternalServerError)
 		return
 	}
-	errGetCoach := s.Repository.DeleteCoach(coachId)
+	errGetCoach := s.Store.DeleteCoach(coachId)
 	if errGetCoach != nil {
 		log.Printf("error returns new coach data: %v\n", errGetCoach)
 		write.WriteHeader(http.StatusNotFound)
@@ -272,7 +273,7 @@ func (s *server) GetAllPupilsForCoach(write http.ResponseWriter, request *http.R
 		WriteResponse(write, "Произошла ошибка на сервере", true, http.StatusInternalServerError)
 		return
 	}
-	pupils, errGetPupils := s.Repository.GetCoachPupils(coachId)
+	pupils, errGetPupils := s.Store.GetCoachPupils(coachId)
 	if errGetPupils != nil {
 		log.Printf("error returns coach pupils list: %v\n", errGetPupils)
 		write.WriteHeader(http.StatusNotFound)
@@ -294,7 +295,7 @@ func (s *server) GetAllCoachList(write http.ResponseWriter, request *http.Reques
 	if !ok {
 		return
 	}
-	coaches, errGetCoaches := s.Repository.GetAllCoaches()
+	coaches, errGetCoaches := s.Store.GetAllCoaches()
 	if errGetCoaches != nil {
 		log.Printf("cannot list admins: %v\n", errGetCoaches)
 		write.WriteHeader(http.StatusInternalServerError)
@@ -324,7 +325,7 @@ func (s *server) GetNearestBirthdays(write http.ResponseWriter, request *http.Re
 		WriteResponse(write, "Произошла ошибка на сервере", true, http.StatusInternalServerError)
 		return
 	}
-	birthDayList, errGetBdayList := s.Repository.GetBirthdaysList(coachId)
+	birthDayList, errGetBdayList := s.Store.GetBirthdaysList(coachId)
 	if errGetBdayList != nil {
 		log.Printf("cannot list bdays for id: %d: %v\n", coachId, errGetBdayList)
 		write.WriteHeader(http.StatusInternalServerError)

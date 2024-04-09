@@ -6,6 +6,7 @@ import (
 	"dnevnik-rg.ru/internal/cache"
 	"dnevnik-rg.ru/internal/models"
 	"dnevnik-rg.ru/internal/repository"
+	"dnevnik-rg.ru/internal/store"
 )
 
 type Server interface {
@@ -49,6 +50,7 @@ type server struct {
 	PupilsCache  cache.IPupils
 	CoachesCache cache.ICoaches
 	AdminsCache  cache.IAdmin
+	Store        store.Store
 	Repository   *repository.Repository
 }
 
@@ -88,13 +90,13 @@ const (
 	GetPupilsBirthdayList = "/additional/birthday/list"
 )
 
-func NewServer(repo *repository.Repository) Server {
+func NewServer(rgStore store.Store) Server {
 	c := cache.NewCache()
 	return &server{
 		PupilsCache:  c.NewPupilsCache(),
 		CoachesCache: c.NewCoachesCache(),
 		AdminsCache:  c.NewAdminsCache(),
-		Repository:   repo,
+		Store:        rgStore,
 	}
 }
 

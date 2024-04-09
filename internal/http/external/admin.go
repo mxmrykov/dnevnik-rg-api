@@ -1,14 +1,15 @@
 package external
 
 import (
-	"dnevnik-rg.ru/internal/models"
-	requests "dnevnik-rg.ru/internal/models/request"
-	"dnevnik-rg.ru/pkg/utils"
 	"encoding/json"
 	"log"
 	"net/http"
 	"strconv"
 	"time"
+
+	"dnevnik-rg.ru/internal/models"
+	requests "dnevnik-rg.ru/internal/models/request"
+	"dnevnik-rg.ru/pkg/utils"
 )
 
 func (s *server) CreateAdmin(write http.ResponseWriter, request *http.Request) {
@@ -51,15 +52,15 @@ func (s *server) CreateAdmin(write http.ResponseWriter, request *http.Request) {
 		LastUpdate: timeNow,
 		Token:      token,
 	}
-	if errNewAdmin := s.Repository.NewAdmin(newAdmin); errNewAdmin != nil {
+	if errNewAdmin := s.Store.NewAdmin(newAdmin); errNewAdmin != nil {
 		log.Printf("error creating new admin: %v\n", errNewAdmin)
 		write.WriteHeader(http.StatusInternalServerError)
 		WriteResponse(write, "Ошибка создания администратора", true, http.StatusInternalServerError)
 		return
 	}
-	if errNewPassword := s.Repository.NewPassword(newPassword); errNewPassword != nil {
+	if errNewPassword := s.Store.NewPassword(newPassword); errNewPassword != nil {
 		log.Printf("error creating new password for admin: %v\n", errNewPassword)
-		if errClearingBrokenAdmin := s.Repository.DeleteAdmin(key); errClearingBrokenAdmin != nil {
+		if errClearingBrokenAdmin := s.Store.DeleteAdmin(key); errClearingBrokenAdmin != nil {
 			log.Printf("error deleting new admin without password: %v\n", errClearingBrokenAdmin)
 		}
 		log.Println("new admin without password cleared")
@@ -68,7 +69,7 @@ func (s *server) CreateAdmin(write http.ResponseWriter, request *http.Request) {
 		return
 	}
 	s.AdminsCache.WriteAdmin(newAdmin)
-	admin, errGetAdmin := s.Repository.GetAdmin(key)
+	admin, errGetAdmin := s.Store.GetAdmin(key)
 	if errGetAdmin != nil {
 		log.Printf("error returns new admin data: %v\n", errGetAdmin)
 		write.WriteHeader(http.StatusInternalServerError)
@@ -103,7 +104,7 @@ func (s *server) GetAdmin(write http.ResponseWriter, request *http.Request) {
 		WriteDataResponse(write, "Администратор получен", false, http.StatusOK, *p)
 		return
 	}
-	admin, errGetAdmin := s.Repository.GetAdmin(UserId)
+	admin, errGetAdmin := s.Store.GetAdmin(UserId)
 	if errGetAdmin != nil {
 		log.Printf("cannot check admin: %v\n", errGetAdmin)
 		write.WriteHeader(http.StatusInternalServerError)
@@ -132,7 +133,7 @@ func (s *server) GetAllAdminsExcept(write http.ResponseWriter, request *http.Req
 	if !ok {
 		return
 	}
-	admins, errGetAdmin := s.Repository.GetAllAdminsExcept(UserId)
+	admins, errGetAdmin := s.Store.GetAllAdminsExcept(UserId)
 	if errGetAdmin != nil {
 		log.Printf("cannot list admins: %v\n", errGetAdmin)
 		write.WriteHeader(http.StatusInternalServerError)

@@ -7,12 +7,12 @@ import (
 
 	"dnevnik-rg.ru/config"
 	"dnevnik-rg.ru/internal/http/external"
-	"dnevnik-rg.ru/internal/repository"
+	"dnevnik-rg.ru/internal/store"
 )
 
-func NewHttp(configHttp *config.Http, repo *repository.Repository, recoveryRequired bool) {
+func NewHttp(configHttp *config.Http, rgStore store.Store, recoveryRequired bool) {
 	mux := http.NewServeMux()
-	server := external.NewServer(repo)
+	server := external.NewServer(rgStore)
 	cacheRecoveryTimeStart := time.Now()
 
 	go func(cacheRecoveryTimeStart *time.Time) {
@@ -20,17 +20,17 @@ func NewHttp(configHttp *config.Http, repo *repository.Repository, recoveryRequi
 			return
 		}
 		log.Println("cache recovery is required, starting...")
-		pupils, errRecoveryPupils := repo.GetAllPupils()
+		pupils, errRecoveryPupils := rgStore.GetAllPupils()
 		if errRecoveryPupils != nil {
 			log.Println("error recovering pupils from DB to cache:", errRecoveryPupils)
 		}
 		server.RecoverPupils(pupils)
-		coaches, errRecoveryCoaches := repo.GetAllCoaches()
+		coaches, errRecoveryCoaches := rgStore.GetAllCoaches()
 		if errRecoveryCoaches != nil {
 			log.Println("error recovering coaches from DB to cache:", errRecoveryCoaches)
 		}
 		server.RecoverCoaches(coaches)
-		admins, errRecoveryAdmins := repo.GetAllAdmins()
+		admins, errRecoveryAdmins := rgStore.GetAllAdmins()
 		if errRecoveryAdmins != nil {
 			log.Println("error recovering admins from DB to cache:", errRecoveryAdmins)
 		}

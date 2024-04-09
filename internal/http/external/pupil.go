@@ -83,15 +83,15 @@ func (s *server) CreatePupil(write http.ResponseWriter, request *http.Request) {
 		LastUpdate: timeNow,
 		Token:      token,
 	}
-	if errNewCoach := s.Repository.CreatePupil(newPupil); errNewCoach != nil {
+	if errNewCoach := s.Store.CreatePupil(newPupil); errNewCoach != nil {
 		log.Printf("error creating new pupil: %v\n", errNewCoach)
 		write.WriteHeader(http.StatusInternalServerError)
 		WriteResponse(write, "Ошибка создания ученицы", true, http.StatusInternalServerError)
 		return
 	}
-	if errNewPassword := s.Repository.NewPassword(newPassword); errNewPassword != nil {
+	if errNewPassword := s.Store.NewPassword(newPassword); errNewPassword != nil {
 		log.Printf("error creating new password for pupil: %v\n", errNewPassword)
-		if errClearingBrokenAdmin := s.Repository.DeletePupil(key); errClearingBrokenAdmin != nil {
+		if errClearingBrokenAdmin := s.Store.DeletePupil(key); errClearingBrokenAdmin != nil {
 			log.Printf("error deleting new pupil without password: %v\n", errClearingBrokenAdmin)
 		}
 		log.Println("new pupil without password cleared")
@@ -99,7 +99,7 @@ func (s *server) CreatePupil(write http.ResponseWriter, request *http.Request) {
 		WriteResponse(write, "Ошибка создания ученицы", true, http.StatusInternalServerError)
 		return
 	}
-	pupil, errGetPupil := s.Repository.GetPupilFull(key)
+	pupil, errGetPupil := s.Store.GetPupilFull(key)
 	if errGetPupil != nil {
 		log.Printf("error returns new pupil data: %v\n", errGetPupil)
 		write.WriteHeader(http.StatusInternalServerError)
@@ -137,7 +137,7 @@ func (s *server) GetPupil(write http.ResponseWriter, request *http.Request) {
 		WriteDataResponse(write, "Ученица получена", false, http.StatusOK, *p)
 		return
 	}
-	pupil, errGetPupil := s.Repository.GetPupil(pupilId)
+	pupil, errGetPupil := s.Store.GetPupil(pupilId)
 	if errGetPupil != nil {
 		log.Printf("error returns new pupil data: %v\n", errGetPupil)
 		write.WriteHeader(http.StatusNotFound)
@@ -168,7 +168,7 @@ func (s *server) GetPupilFull(write http.ResponseWriter, request *http.Request) 
 		WriteResponse(write, "Произошла ошибка на сервере", true, http.StatusInternalServerError)
 		return
 	}
-	pupil, errGetPupil := s.Repository.GetPupilFull(pupilId)
+	pupil, errGetPupil := s.Store.GetPupilFull(pupilId)
 	if errGetPupil != nil {
 		log.Printf("error returns new pupil data: %v\n", errGetPupil)
 		write.WriteHeader(http.StatusNotFound)
@@ -236,7 +236,7 @@ func (s *server) UpdatePupil(write http.ResponseWriter, request *http.Request) {
 		return
 	}
 	sql := utils.GenerateUpdateSql("pupil", pupilIdInt, params, values)
-	errUpdatePupil := s.Repository.UpdatePupil(sql)
+	errUpdatePupil := s.Store.UpdatePupil(sql)
 	if errUpdatePupil != nil {
 		log.Printf("error returns new coach data: %v\n", errUpdatePupil)
 		write.WriteHeader(http.StatusInternalServerError)
@@ -265,7 +265,7 @@ func (s *server) DeletePupil(write http.ResponseWriter, request *http.Request) {
 		WriteResponse(write, "Произошла ошибка на сервере", true, http.StatusInternalServerError)
 		return
 	}
-	errDeletePupil := s.Repository.DeletePupil(pupilId)
+	errDeletePupil := s.Store.DeletePupil(pupilId)
 	if errDeletePupil != nil {
 		log.Printf("error returns delete pupil: %v\n", errDeletePupil)
 		write.WriteHeader(http.StatusNotFound)
@@ -287,7 +287,7 @@ func (s *server) GetAllPupilsList(write http.ResponseWriter, request *http.Reque
 	if ok, _ := s.checkExistence(write, request); !ok {
 		return
 	}
-	pupils, errGetPupilsList := s.Repository.GetAllPupils()
+	pupils, errGetPupilsList := s.Store.GetAllPupils()
 	if errGetPupilsList != nil {
 		log.Printf("cannot list admins: %v\n", errGetPupilsList)
 		write.WriteHeader(http.StatusInternalServerError)

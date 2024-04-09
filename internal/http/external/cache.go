@@ -1,8 +1,9 @@
 package external
 
 import (
-	"dnevnik-rg.ru/internal/models"
 	"net/http"
+
+	"dnevnik-rg.ru/internal/models"
 )
 
 func (s *server) ShowCacheUsers(write http.ResponseWriter, request *http.Request) {
@@ -11,10 +12,10 @@ func (s *server) ShowCacheUsers(write http.ResponseWriter, request *http.Request
 		WriteResponse(write, "Неизвестный метод", true, http.StatusNotFound)
 		return
 	}
-	//ok, _ := s.checkExistence(write, request)
-	//if !ok {
-	//	return
-	//}
+	ok, _ := s.checkExistence(write, request)
+	if !ok {
+		return
+	}
 	cache := struct {
 		Pupils  map[int]*models.Pupil `json:"pupils"`
 		Coaches map[int]*models.Coach `json:"coaches"`

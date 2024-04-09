@@ -1,11 +1,12 @@
 package external
 
 import (
-	"dnevnik-rg.ru/pkg/utils"
 	"encoding/json"
 	"log"
 	"net/http"
 	"strconv"
+
+	"dnevnik-rg.ru/pkg/utils"
 
 	requests "dnevnik-rg.ru/internal/models/request"
 )
@@ -35,7 +36,7 @@ func (s *server) Authorize(write http.ResponseWriter, request *http.Request) {
 		WriteResponse(write, "Произошла ошибка на сервере", true, http.StatusInternalServerError)
 		return
 	}
-	auth, errAuthorize := s.Repository.Authorize(userId, decoded.Checksum)
+	auth, errAuthorize := s.Store.Authorize(userId, decoded.Checksum, request.RemoteAddr)
 	if errAuthorize != nil {
 		log.Printf("error returns auth user: %v\n", errAuthorize)
 		write.WriteHeader(http.StatusUnauthorized)
@@ -43,13 +44,13 @@ func (s *server) Authorize(write http.ResponseWriter, request *http.Request) {
 		return
 	}
 	token, _ := utils.SetLongJwt(userId, decoded.Checksum, "ADMIN")
-	if updErr := s.Repository.AutoUpdateToken(token, userId); updErr != nil {
+	if updErr := s.Store.AutoUpdateToken(token, userId); updErr != nil {
 		log.Printf("error returns upd user token: %v\n", updErr)
 		write.WriteHeader(http.StatusInternalServerError)
 		WriteResponse(write, "Неверные данные для входа", true, http.StatusInternalServerError)
 		return
 	}
-	auth, _ = s.Repository.Authorize(userId, decoded.Checksum)
+	auth.Token = token
 	write.WriteHeader(http.StatusOK)
 	WriteDataResponse(write, "Данные авторизации получены", false, http.StatusOK, auth)
 	return

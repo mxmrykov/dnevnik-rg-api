@@ -14,7 +14,7 @@ func (s *server) checkExistence(write http.ResponseWriter, request *http.Request
 		WriteResponse(write, "Произошла ошибка на сервере", true, http.StatusInternalServerError)
 		return false, errConv
 	}
-	if ok, errCheckAdmin := s.Repository.IsAdminExists(UserId); !ok || errCheckAdmin != nil {
+	if ok, errCheckAdmin := s.Store.IsAdminExists(UserId); !ok || errCheckAdmin != nil {
 		log.Printf("err check admin: %v\n", errCheckAdmin)
 		write.WriteHeader(http.StatusForbidden)
 		WriteResponse(write, "Доступ запрещен", true, http.StatusForbidden)
@@ -33,7 +33,7 @@ func (s *server) checkCoachExistence(write http.ResponseWriter, request *http.Re
 		}
 		return false, errConv
 	}
-	if ok, errCheckCoach := s.Repository.IsCoachExists(UserId); !ok || errCheckCoach != nil {
+	if ok, errCheckCoach := s.Store.IsCoachExists(UserId); !ok || errCheckCoach != nil {
 		log.Printf("err check coach: %v\n", errCheckCoach)
 		if needsResponse {
 			write.WriteHeader(http.StatusForbidden)

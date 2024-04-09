@@ -1,14 +1,15 @@
 package external
 
 import (
-	"dnevnik-rg.ru/internal/models"
-	requests "dnevnik-rg.ru/internal/models/request"
-	"dnevnik-rg.ru/internal/models/response"
 	"encoding/json"
 	"log"
 	"net/http"
 	"strconv"
 	"time"
+
+	"dnevnik-rg.ru/internal/models"
+	requests "dnevnik-rg.ru/internal/models/request"
+	"dnevnik-rg.ru/internal/models/response"
 
 	"dnevnik-rg.ru/pkg/utils"
 )
@@ -38,7 +39,7 @@ func (s *server) GetCoachSchedule(write http.ResponseWriter, request *http.Reque
 		WriteResponse(write, "Неверный формат времени", true, http.StatusBadRequest)
 		return
 	}
-	schedule, errGetSchedule := s.Repository.GetCoachSchedule(coachId, classDateString)
+	schedule, errGetSchedule := s.Store.GetCoachSchedule(coachId, classDateString)
 	if errGetSchedule != nil {
 		log.Printf("error returns coach pupils list: %v\n", errGetSchedule)
 		write.WriteHeader(http.StatusInternalServerError)
@@ -133,7 +134,7 @@ func (s *server) CreateClass(write http.ResponseWriter, request *http.Request) {
 
 	class.Price = decoded.Price
 
-	newClassId, err = s.Repository.CreateClass(class)
+	newClassId, err = s.Store.CreateClass(class)
 	if err != nil {
 		log.Println("err at creating class:", err)
 		write.WriteHeader(http.StatusInternalServerError)
@@ -171,7 +172,7 @@ func (s *server) GetClassesTodayAdmin(write http.ResponseWriter, request *http.R
 
 	date = request.URL.Query().Get("date")
 
-	classes, err := s.Repository.GetAdminClassesForToday(date)
+	classes, err := s.Store.GetAdminClassesForToday(date)
 
 	if err != nil {
 		log.Println("err at creating class:", err)
@@ -185,14 +186,14 @@ func (s *server) GetClassesTodayAdmin(write http.ResponseWriter, request *http.R
 		for _, pupilID := range class.Pupils {
 			pupils = append(pupils, pupilID)
 		}
-		stringPupils, err := s.Repository.GetPupilsNameByIds(pupils)
+		stringPupils, err := s.Store.GetPupilsNameByIds(pupils)
 		if err != nil {
 			log.Println("err at getting pupils names:", err)
 			write.WriteHeader(http.StatusInternalServerError)
 			WriteResponse(write, "Произошла ошибка на сервере", true, http.StatusInternalServerError)
 			return
 		}
-		coachString, err := s.Repository.GetCoachNameById(class.Coach)
+		coachString, err := s.Store.GetCoachNameById(class.Coach)
 		if err != nil {
 			log.Println("err at getting pupils names:", err)
 			write.WriteHeader(http.StatusInternalServerError)
@@ -200,9 +201,9 @@ func (s *server) GetClassesTodayAdmin(write http.ResponseWriter, request *http.R
 			return
 		}
 
-		response := models.ShortStringClassInfo{
+		resp := models.ShortStringClassInfo{
 			Key:            class.Key,
-			Coach:          coachString,
+			Coach:          *coachString,
 			Pupils:         make([]string, 0, len(pupils)),
 			ClassTime:      class.ClassTime,
 			ClassDuration:  class.ClassDuration,
@@ -213,10 +214,10 @@ func (s *server) GetClassesTodayAdmin(write http.ResponseWriter, request *http.R
 		}
 
 		for _, pupil := range stringPupils {
-			response.Pupils = append(response.Pupils, pupil)
+			resp.Pupils = append(resp.Pupils, pupil)
 		}
 
-		res = append(res, response)
+		res = append(res, resp)
 	}
 
 	write.WriteHeader(http.StatusOK)
@@ -248,7 +249,7 @@ func (s *server) CancelClass(write http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	if err := s.Repository.CancelClass(classId); err != nil {
+	if err := s.Store.CancelClass(classId); err != nil {
 		log.Println("err at creating class:", err)
 		write.WriteHeader(http.StatusInternalServerError)
 		WriteResponse(write, "Произошла ошибка на сервере", true, http.StatusInternalServerError)
