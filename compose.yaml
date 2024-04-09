@@ -2,6 +2,18 @@ version:
   "3.8"
 
 services:
+  flyway:
+    image: flyway/flyway:10.11
+    depends_on:
+      - postgres
+    command:
+      "-url=jdbc:postgresql://pg-shard-1:5432/dnevnik-rg.shard-1  -locations=filesystem:/flyway/sql -connectRetries=3 migrate"
+    volumes:
+      - ./migrations/sql:/flyway/sql
+    env_file:
+      - ./migrations/env/.env
+    environment:
+      - FLYWAY_LOCATIONS="filesystem:/flyway/sql"
   postgres:
     container_name: "pg-shard-1"
     image: postgres:14.0
@@ -13,18 +25,6 @@ services:
       POSTGRES_PASSWORD: '058cb8ee6a01b88f'
     ports:
       - '127.0.0.1:5588:5432'
-  flyway:
-    image: flyway/flyway:10.11
-    depends_on:
-      - postgres
-    command:
-      "-url=jdbc:postgresql://pg-shard-1:5432/dnevnik-rg.shard-1  -locations=filesystem:/flyway/sql -connectRetries=3 migrate"
-    volumes:
-      - ${PWD}/migrations/sql:/flyway/sql
-    env_file:
-      - ${PWD}/migrations/env/.env
-    environment:
-      - FLYWAY_LOCATIONS="filesystem:/flyway/sql"
 #  server:
 #    build:
 #      context: .

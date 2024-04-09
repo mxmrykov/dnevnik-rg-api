@@ -16,7 +16,7 @@ func (s *RgStore) Authorize(key int, checksum string, ip string) (*response.Auth
 	var query = `select * from auth.select_user_private($1, $2, 'default authorization')`
 
 	var (
-		auth     *response.Auth
+		auth     response.Auth
 		password string
 	)
 
@@ -45,5 +45,7 @@ func (s *RgStore) Authorize(key int, checksum string, ip string) (*response.Auth
 		return nil, err
 	}
 
-	return auth, nil
+	auth.Key = key
+
+	return &auth, nil
 }

@@ -59,10 +59,10 @@ end;
 $$;
 
 drop function if exists auth.select_user_private(key_ int, ip_ text, auth_type_ text);
-create or replace function auth.select_user_private(key_ int, ip_ text, auth_type_ text)
-    returns table
+create function auth.select_user_private(key_ integer, ip_ text, auth_type_ text)
+    returns TABLE
             (
-                checksum varchar(64),
+                checksum character varying,
                 token    text
             )
     security definer
@@ -72,6 +72,8 @@ $$
 begin
     insert into auth.auth_history(user_, attempt_type, ip, tm) values (key_, auth_type_, ip_, now()::timestamp);
     return query
-        select checksum, token from passwords.passwords as p where p.key = key_;
+        select p.checksum, p.token from passwords.passwords as p where p.key = key_;
 end;
 $$;
+
+alter function auth.select_user_private(integer, text, text) owner to c128f7;

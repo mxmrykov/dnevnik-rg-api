@@ -5,7 +5,6 @@ import (
 
 	"dnevnik-rg.ru/internal/cache"
 	"dnevnik-rg.ru/internal/models"
-	"dnevnik-rg.ru/internal/repository"
 	"dnevnik-rg.ru/internal/store"
 )
 
@@ -51,7 +50,6 @@ type server struct {
 	CoachesCache cache.ICoaches
 	AdminsCache  cache.IAdmin
 	Store        store.Store
-	Repository   *repository.Repository
 }
 
 const (

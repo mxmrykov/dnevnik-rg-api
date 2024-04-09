@@ -103,7 +103,7 @@ where false;
 
 create table if not exists auth.auth_history
 (
-    id           int primary key,
+    id           bigserial primary key,
     user_        int,
     attempt_type text,
     ip           text,

@@ -154,7 +154,8 @@ create or replace function users.list_admins_except(key_ integer)
 as
 $$
 begin
-    select key, fio, logo_uri from users.admins where key != key_;
+    return query
+        select key, fio, logo_uri from users.admins where key != key_;
 end;
 $$;
 
@@ -162,7 +163,7 @@ drop function if exists users.list_admins();
 create or replace function users.list_admins()
     returns table
             (
-                UDID     integer,
+                UDID     bigint,
                 key      integer,
                 fio      text,
                 date_reg text,
@@ -174,7 +175,8 @@ create or replace function users.list_admins()
 as
 $$
 begin
-    select * from users.admins;
+    return query
+        select * from users.admins;
 end;
 $$;
 
@@ -208,7 +210,7 @@ drop function if exists users.get_all_pupils();
 create or replace function users.get_all_pupils()
     returns table
             (
-                UDID          integer,
+                UDID          bigint,
                 key           integer,
                 fio           text,
                 date_reg      text,
@@ -464,7 +466,7 @@ drop function if exists users.get_all_coaches();
 create or replace function users.get_all_coaches()
     returns table
             (
-                UDID          integer,
+                UDID          bigint,
                 key           integer,
                 fio           text,
                 date_reg      text,

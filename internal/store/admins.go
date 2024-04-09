@@ -51,7 +51,7 @@ func (s *RgStore) GetAdmin(key int) (*response.Admin, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), s.operationTimeout)
 	defer cancel()
 
-	const query = `select * from users.delete_admin($1)`
+	const query = `select * from users.get_admin($1)`
 
 	var admin response.Admin
 
