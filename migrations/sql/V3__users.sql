@@ -127,17 +127,18 @@ create or replace function users.get_admin(key_ integer)
 as
 $$
 begin
-    select a.key,
-           a.fio,
-           a.date_reg,
-           a.logo_uri,
-           a.role,
-           p.checksum,
-           p.last_update,
-           p.token
-    from users.admins a
-             left join passwords.passwords p on a.key = p.key
-    where a.key = key_;
+    return query
+        select a.key,
+               a.fio,
+               a.date_reg,
+               a.logo_uri,
+               a.role,
+               p.checksum,
+               p.last_update,
+               p.token
+        from users.admins a
+                 left join passwords.passwords p on a.key = p.key
+        where a.key = key_;
 end;
 $$;
 
@@ -181,13 +182,18 @@ end;
 $$;
 
 drop function if exists users.if_admin_exists(key_ integer);
-create or replace function users.if_admin_exists(key_ integer) returns boolean
+create or replace function users.if_admin_exists(key_ integer)
+    returns table
+            (
+                ex bool
+            )
     security definer
     language plpgsql
 as
 $$
 begin
-    select count(*) > 0 from users.admins where key = key_;
+    return query
+        select count(*) > 0 from users.admins where key = key_;
 end;
 $$;
 

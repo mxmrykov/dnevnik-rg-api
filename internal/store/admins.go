@@ -34,17 +34,17 @@ func (s *RgStore) IsAdminExists(key int) (bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), s.operationTimeout)
 	defer cancel()
 
-	const query = `select * from users.delete_admin($1)`
+	const query = `select ex from users.if_admin_exists($1)`
 
-	var count int
+	var exists bool
 
-	err := s.s.QueryRow(ctx, query, key).Scan(&count)
+	err := s.s.QueryRow(ctx, query, key).Scan(&exists)
 
 	if err != nil {
 		return false, err
 	}
 
-	return count == 1, nil
+	return exists, nil
 }
 
 func (s *RgStore) GetAdmin(key int) (*response.Admin, error) {

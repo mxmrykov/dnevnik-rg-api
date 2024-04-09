@@ -98,16 +98,16 @@ as
 $$
 begin
     return query
-        select key,
-               pupil,
-               coach,
-               class_time,
-               class_dur,
-               classtype,
-               pupilcount,
-               scheduled,
-               isopentosignup
-        from classes
+        select cl.key,
+               cl.pupil,
+               cl.coach,
+               cl.class_time,
+               cl.class_dur,
+               cl.classtype,
+               cl.pupilcount,
+               cl.scheduled,
+               cl.isopentosignup
+        from classes.classes as cl
         where class_date = class_date_
         order by class_time;
 end;
