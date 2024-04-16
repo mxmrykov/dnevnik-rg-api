@@ -148,7 +148,9 @@ create or replace function users.list_admins_except(key_ integer)
             (
                 key      integer,
                 fio      text,
-                logo_uri text
+                date_reg text,
+                logo_uri text,
+                role     varchar(10)
             )
     security definer
     language plpgsql
@@ -156,7 +158,7 @@ as
 $$
 begin
     return query
-        select key, fio, logo_uri from users.admins where key != key_;
+        select t.key, t.fio, t.date_reg, t.logo_uri, t.role from users.admins as t where t.key != key_;
 end;
 $$;
 
@@ -164,7 +166,7 @@ drop function if exists users.list_admins();
 create or replace function users.list_admins()
     returns table
             (
-                UDID     bigint,
+                UDID     integer,
                 key      integer,
                 fio      text,
                 date_reg text,
@@ -216,7 +218,7 @@ drop function if exists users.get_all_pupils();
 create or replace function users.get_all_pupils()
     returns table
             (
-                UDID          bigint,
+                UDID          integer,
                 key           integer,
                 fio           text,
                 date_reg      text,
@@ -472,7 +474,7 @@ drop function if exists users.get_all_coaches();
 create or replace function users.get_all_coaches()
     returns table
             (
-                UDID          bigint,
+                UDID          integer,
                 key           integer,
                 fio           text,
                 date_reg      text,

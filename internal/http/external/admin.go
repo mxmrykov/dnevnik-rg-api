@@ -1,6 +1,7 @@
 package external
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -32,7 +33,9 @@ func (s *server) CreateAdmin(write http.ResponseWriter, request *http.Request) {
 	key := int(utils.GetKey())
 	checkSum := utils.NewPassword()
 	timeNow := time.Now().Format(time.RFC3339)
-	token, errCreateToken := utils.SetLongJwt(key, checkSum, timeNow)
+	byteArr := []byte(utils.HashSumGen(key, checkSum))
+	cs := base64.StdEncoding.EncodeToString(byteArr)
+	token, errCreateToken := utils.SetLongJwt(key, cs, "ADMIN")
 	if errCreateToken != nil {
 		log.Printf("error creating new token: %v\n", errCreateToken)
 		write.WriteHeader(http.StatusInternalServerError)
@@ -40,15 +43,17 @@ func (s *server) CreateAdmin(write http.ResponseWriter, request *http.Request) {
 		return
 	}
 	newAdmin := models.Admin{
-		General: models.General{Key: key,
+		General: models.General{
+			Key:     key,
 			Fio:     decoded.Fio,
 			DateReg: timeNow,
 			LogoUri: "https://dnevnik-rg.ru/admin-logo.png",
-			Role:    "ADMIN"},
+			Role:    "ADMIN",
+		},
 	}
 	newPassword := models.Password{
 		Key:        key,
-		CheckSum:   checkSum,
+		CheckSum:   cs,
 		LastUpdate: timeNow,
 		Token:      token,
 	}
@@ -76,6 +81,7 @@ func (s *server) CreateAdmin(write http.ResponseWriter, request *http.Request) {
 		WriteResponse(write, "Не удалось получить созданного администратора", true, http.StatusInternalServerError)
 		return
 	}
+	admin.Private.CheckSum = checkSum
 	write.WriteHeader(http.StatusOK)
 	WriteDataResponse(write, "Администратор зарегистрирован", false, http.StatusOK, admin)
 	return

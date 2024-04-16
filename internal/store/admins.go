@@ -12,9 +12,9 @@ func (s *RgStore) NewAdmin(admin models.Admin) error {
 	ctx, cancel := context.WithTimeout(context.Background(), s.operationTimeout)
 	defer cancel()
 
-	const query = `select * from users.list_admins()`
+	const query = `select from users.create_admin($1, $2, $3, $4, $5)`
 
-	_, err := s.s.Exec(ctx, query, admin)
+	_, err := s.s.Exec(ctx, query, admin.Key, admin.Fio, admin.DateReg, admin.LogoUri, admin.Role)
 
 	return err
 }
@@ -121,7 +121,6 @@ func (s *RgStore) GetAllAdminsExcept(key int) ([]models.Admin, error) {
 	_, err := pgx.ForEachRow(
 		rows,
 		[]any{
-			nil,
 			&admin.Key,
 			&admin.Fio,
 			&admin.DateReg,

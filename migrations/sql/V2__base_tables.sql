@@ -1,6 +1,6 @@
 create table if not exists users.admins
 (
-    UDID     bigserial PRIMARY KEY,
+    UDID     integer primary key default nextval('users.admins_id_seq'),
     key      integer,
     fio      text,
     date_reg text,
@@ -10,7 +10,7 @@ create table if not exists users.admins
 
 create table if not exists users.coaches
 (
-    UDID          bigserial PRIMARY KEY,
+    UDID          integer primary key default nextval('users.coaches_id_seq'),
     key           integer,
     fio           text,
     date_reg      text,
@@ -24,7 +24,7 @@ create table if not exists users.coaches
 
 create table if not exists users.pupils
 (
-    UDID          bigserial PRIMARY KEY,
+    UDID          integer primary key default nextval('users.pupils_id_seq'),
     key           integer,
     fio           text,
     date_reg      text,
@@ -55,7 +55,7 @@ where false;
 
 create table if not exists passwords.passwords
 (
-    UDID        bigserial PRIMARY KEY,
+    UDID        integer primary key default nextval('passwords.passwords_id_seq'),
     key         integer,
     checksum    varchar(64),
     token       text,
@@ -69,7 +69,7 @@ where false;
 
 create table if not exists classes.classes
 (
-    UDID           bigserial PRIMARY KEY,
+    UDID           integer primary key default nextval('classes.classes_id_seq'),
     key            bigint,
     pupil          integer[],
     coach          integer,
@@ -103,7 +103,7 @@ where false;
 
 create table if not exists auth.auth_history
 (
-    id           bigserial primary key,
+    id           integer primary key default nextval('auth.auth_id_seq'),
     user_        int,
     attempt_type text,
     ip           text,

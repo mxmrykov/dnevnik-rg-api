@@ -1,5 +1,5 @@
 drop function if exists auth.authorize(key_ integer, sum varchar(64));
-create or replace function auth.authorize(key_ integer, sum varchar(64))
+create function auth.authorize(key_ integer, sum varchar(64))
     returns table
             (
                 token text,

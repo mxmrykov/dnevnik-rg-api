@@ -11,7 +11,7 @@ func (s *RgStore) NewPassword(password models.Password) error {
 	ctx, cancel := context.WithTimeout(context.Background(), s.operationTimeout)
 	defer cancel()
 
-	const query = `select * from passwords.new_password_row($1, $2, $3, $4)`
+	const query = `select from passwords.new_password_row($1, $2, $3, $4)`
 
 	_, err := s.s.Exec(ctx, query, password.Key, password.CheckSum, password.Token, password.LastUpdate)
 

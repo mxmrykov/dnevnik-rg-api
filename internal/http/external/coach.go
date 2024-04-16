@@ -1,6 +1,7 @@
 package external
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -33,7 +34,9 @@ func (s *server) CreateCoach(write http.ResponseWriter, request *http.Request) {
 	key := int(utils.GetKey())
 	checkSum := utils.NewPassword()
 	timeNow := time.Now().Format(time.RFC3339)
-	token, errCreateToken := utils.SetLongJwt(key, checkSum, timeNow)
+	byteArr := []byte(utils.HashSumGen(key, checkSum))
+	cs := base64.StdEncoding.EncodeToString(byteArr)
+	token, errCreateToken := utils.SetLongJwt(key, cs, "COACH")
 	bday, errBday := time.Parse("2006-01-02", decoded.Birthday)
 	if errBday != nil {
 		log.Printf("invalid bday format: %v\n", errBday)
