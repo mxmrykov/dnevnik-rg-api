@@ -80,17 +80,17 @@ create or replace function users.get_coach(key_ integer)
 as
 $$
 begin
-    select key,
-           fio,
-           date_reg_,
-           home_city,
-           training_city,
-           birthday,
-           about,
-           logo_uri,
-           role
-    from users.coaches
-    where key = key_;
+    select uc.key,
+           uc.fio,
+           uc.date_reg,
+           uc.home_city,
+           uc.training_city,
+           uc.birthday,
+           uc.about,
+           uc.logo_uri,
+           uc.role
+    from users.coaches as uc
+    where uc.key = key_;
 end;
 $$;
 
@@ -301,21 +301,22 @@ create or replace function users.get_coach_full(key_ integer)
 as
 $$
 begin
-    SELECT c.key,
-           fio,
-           date_reg,
-           home_city,
-           training_city,
-           birthday,
-           about,
-           logo_uri,
-           role,
-           p.checksum,
-           p.token,
-           p.last_update
-    FROM users.coaches as c
-             LEFT JOIN passwords.passwords p on c.key = p.key
-    WHERE c.key = key_;
+    return query
+        select c.key,
+               c.fio,
+               c.date_reg,
+               c.home_city,
+               c.training_city,
+               c.birthday,
+               c.about,
+               c.logo_uri,
+               c.role,
+               p.checksum,
+               p.token,
+               p.last_update
+        from users.coaches as c
+                 left join passwords.passwords p on c.key = p.key
+        where c.key = key_;
 end;
 $$;
 
@@ -332,19 +333,24 @@ create or replace function users.get_coach_pupils(key_ integer)
 as
 $$
 begin
-    select key, fio, logo_uri from users.pupils where coach = key_;
+    return query
+        select up.key, up.fio, up.logo_uri from users.pupils as up where coach = key_;
 end;
 $$;
 
 drop function if exists users.if_coach_exists(key_ integer);
 create or replace function users.if_coach_exists(key_ integer)
-    returns boolean
+    returns table
+            (
+                count bigint
+            )
     security definer
     language plpgsql
 as
 $$
 begin
-    select count(*) > 0 from users.coaches where key = key_;
+    return query
+        select count(*) from users.coaches where key = key_;
 end;
 $$;
 
@@ -420,7 +426,7 @@ as
 $$
 begin
     return query
-        select * from users.pupils where key = key_;
+        select * from users.pupils up where up.key = key_;
 end;
 $$;
 
@@ -428,7 +434,6 @@ drop function if exists users.get_pupil_full(key_ integer);
 create or replace function users.get_pupil_full(key_ integer)
     returns table
             (
-                UDID          integer,
                 key           integer,
                 fio           text,
                 date_reg      text,
@@ -451,16 +456,16 @@ $$
 begin
     return query
         select p.key,
-               fio,
-               date_reg,
-               coach,
-               home_city,
-               training_city,
-               birthday,
-               about,
-               coach_review,
-               logo_uri,
-               role,
+               p.fio,
+               p.date_reg,
+               p.coach,
+               p.home_city,
+               p.training_city,
+               p.birthday,
+               p.about,
+               p.coach_review,
+               p.logo_uri,
+               p.role,
                ps.checksum,
                ps.token,
                ps.last_update
@@ -507,7 +512,7 @@ create or replace function users.get_nearest_pupils_bd(coach_ integer)
 as
 $$
 begin
-    return query select key, fio, birthday from users.pupils as u where u.coach = coach_;
+    return query select u.key, u.fio, u.birthday from users.pupils as u where u.coach = coach_;
 end;
 $$;
 

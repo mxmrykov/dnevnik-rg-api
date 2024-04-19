@@ -2,22 +2,23 @@ drop function if exists classes.get_coach_schedule(coach_ integer, class_date_ t
 create or replace function classes.get_coach_schedule(coach_ integer, class_date_ text)
     returns table
             (
-                key        integer,
-                pupil      integer,
+                key        bigint,
+                pupil      integer[],
                 coach      integer,
                 class_date text,
-                class_time text,
-                class_dur  text
+                class_time varchar(5),
+                class_dur  varchar(5)
             )
     security definer
     language plpgsql
 as
 $$
 begin
-    select key, pupil, coach, class_date, class_time, class_dur
-    from classes.classes as c
-    where c.coach = coach_
-      and c.class_date = class_date_;
+    return query
+        select c.key, c.pupil, c.coach, c.class_date, c.class_time, c.class_dur
+        from classes.classes as c
+        where c.coach = coach_
+          and c.class_date = class_date_;
 end;
 $$;
 
@@ -47,7 +48,7 @@ create or replace function classes.create_class_if_not_exists(
 )
     returns table
             (
-                key integer
+                key bigint
             )
     security definer
     language plpgsql
@@ -74,7 +75,7 @@ as
 $$
 begin
     return query
-        select count(*) from classes where coach = coach_ and class_date = class_date_ and class_time = class_time_;
+        select count(*) from classes.classes where coach = coach_ and class_date = class_date_ and class_time = class_time_;
 end;
 $$;
 

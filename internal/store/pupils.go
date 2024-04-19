@@ -23,6 +23,7 @@ func (s *RgStore) GetAllPupils() ([]models.Pupil, error) {
 	_, err := pgx.ForEachRow(
 		rows,
 		[]any{
+			nil,
 			&pupil.Key,
 			&pupil.Fio,
 			&pupil.DateReg,
@@ -72,10 +73,12 @@ func (s *RgStore) GetPupilFull(key int) (*response.PupilFull, error) {
 		&pupil.Key,
 		&pupil.Fio,
 		&pupil.DateReg,
+		&pupil.Coach,
 		&pupil.HomeCity,
 		&pupil.TrainingCity,
 		&pupil.Birthday,
 		&pupil.About,
+		&pupil.CoachReview,
 		&pupil.LogoUri,
 		&pupil.Role,
 		&pupil.Private.CheckSum,

@@ -82,7 +82,7 @@ func (s *server) CreatePupil(write http.ResponseWriter, request *http.Request) {
 	}
 	newPassword := models.Password{
 		Key:        key,
-		CheckSum:   checkSum,
+		CheckSum:   cs,
 		LastUpdate: timeNow,
 		Token:      token,
 	}
@@ -109,6 +109,7 @@ func (s *server) CreatePupil(write http.ResponseWriter, request *http.Request) {
 		WriteResponse(write, "Не удалось получить созданную ученицу", true, http.StatusInternalServerError)
 		return
 	}
+	pupil.Private.CheckSum = checkSum
 	s.PupilsCache.WritePupil(newPupil)
 	write.WriteHeader(http.StatusOK)
 	WriteDataResponse(write, "Ученица зарегистрирована", false, http.StatusOK, pupil)
@@ -239,8 +240,7 @@ func (s *server) UpdatePupil(write http.ResponseWriter, request *http.Request) {
 		return
 	}
 	sql := utils.GenerateUpdateSql("pupil", pupilIdInt, params, values)
-	errUpdatePupil := s.Store.UpdatePupil(sql)
-	if errUpdatePupil != nil {
+	if errUpdatePupil := s.Store.UpdatePupil(sql); errUpdatePupil != nil {
 		log.Printf("error returns new coach data: %v\n", errUpdatePupil)
 		write.WriteHeader(http.StatusInternalServerError)
 		WriteResponse(write, "Ошибка обновления ученицы", true, http.StatusInternalServerError)

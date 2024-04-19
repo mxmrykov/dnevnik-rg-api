@@ -63,7 +63,7 @@ func (s *server) CreateCoach(write http.ResponseWriter, request *http.Request) {
 	}
 	newPassword := models.Password{
 		Key:        key,
-		CheckSum:   checkSum,
+		CheckSum:   cs,
 		LastUpdate: timeNow,
 		Token:      token,
 	}
@@ -90,6 +90,7 @@ func (s *server) CreateCoach(write http.ResponseWriter, request *http.Request) {
 		WriteResponse(write, "Не удалось получить созданного тренера", true, http.StatusInternalServerError)
 		return
 	}
+	coach.Private.CheckSum = checkSum
 	s.CoachesCache.WriteCoach(newCoach)
 	write.WriteHeader(http.StatusOK)
 	WriteDataResponse(write, "Тренер зарегистрирован", false, http.StatusOK, coach)

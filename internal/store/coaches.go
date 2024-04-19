@@ -147,12 +147,16 @@ func (s *RgStore) GetCoachPupils(coachId int) ([]response.PupilList, error) {
 		pupils []response.PupilList
 	)
 
-	rows, _ := s.s.Query(ctx, query, coachId)
+	rows, err := s.s.Query(ctx, query, coachId)
 
-	_, err := pgx.ForEachRow(
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	_, err = pgx.ForEachRow(
 		rows,
 		[]any{
-			nil,
 			&pupil.Key,
 			&pupil.Fio,
 			&pupil.LogoUri,
@@ -172,7 +176,7 @@ func (s *RgStore) IsCoachExists(key int) (bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), s.operationTimeout)
 	defer cancel()
 
-	const query = `select * from users.if_coach_exists($1)`
+	const query = `select count from users.if_coach_exists($1)`
 
 	var count int
 
@@ -195,12 +199,16 @@ func (s *RgStore) GetBirthdaysList(key int) ([]requests.BirthDayList, error) {
 		bdays []requests.BirthDayList
 	)
 
-	rows, _ := s.s.Query(ctx, query, key)
+	rows, err := s.s.Query(ctx, query, key)
 
-	_, err := pgx.ForEachRow(
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	_, err = pgx.ForEachRow(
 		rows,
 		[]any{
-			nil,
 			&bday.Key,
 			&bday.Fio,
 			&bday.Birthday,
@@ -226,12 +234,16 @@ func (s *RgStore) GetCoachSchedule(key int, date string) ([]models.ClassMainInfo
 		classes []models.ClassMainInfo
 	)
 
-	rows, _ := s.s.Query(ctx, query, key, date)
+	rows, err := s.s.Query(ctx, query, key, date)
 
-	_, err := pgx.ForEachRow(
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	_, err = pgx.ForEachRow(
 		rows,
 		[]any{
-			nil,
 			&class.Key,
 			&class.Pupils,
 			&class.Coach,
@@ -258,9 +270,7 @@ func (s *RgStore) GetCoachNameById(id int) (*string, error) {
 
 	var fio string
 
-	err := s.s.QueryRow(ctx, query, id).Scan(&fio)
-
-	if err != nil {
+	if err := s.s.QueryRow(ctx, query, id).Scan(&fio); err != nil {
 		return nil, err
 	}
 
