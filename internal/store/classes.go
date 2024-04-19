@@ -16,11 +16,10 @@ func (s *RgStore) CreateClass(class requests.CreateClass) (int, error) {
 		query = `select * from classes.if_class_available($1, $2, $3)`
 		count int
 		id    = -1
+		err   error
 	)
 
-	err := s.s.QueryRow(ctx, query, class.Coach, class.ClassDate, class.ClassTime).Scan(&count)
-
-	if err != nil {
+	if err = s.s.QueryRow(ctx, query, class.Coach, class.ClassDate, class.ClassTime).Scan(&count); err != nil {
 		return 0, err
 	}
 
@@ -45,7 +44,7 @@ func (s *RgStore) CreateClass(class requests.CreateClass) (int, error) {
 		&id,
 	)
 
-	return id, nil
+	return id, err
 }
 
 func (s *RgStore) CancelClass(classId int) error {
@@ -53,6 +52,17 @@ func (s *RgStore) CancelClass(classId int) error {
 	defer cancel()
 
 	const query = `select from classes.cancel_class($1)`
+
+	_, err := s.s.Exec(ctx, query, classId)
+
+	return err
+}
+
+func (s *RgStore) DeleteClass(classId int) error {
+	ctx, cancel := context.WithTimeout(context.Background(), s.operationTimeout)
+	defer cancel()
+
+	const query = `select from classes.delete_class($1)`
 
 	_, err := s.s.Exec(ctx, query, classId)
 

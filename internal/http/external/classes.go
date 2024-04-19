@@ -143,13 +143,14 @@ func (s *server) CreateClass(write http.ResponseWriter, request *http.Request) {
 	}
 
 	if newClassId == -1 {
+		log.Println("err at creating class: class at this time exists exists")
 		write.WriteHeader(http.StatusConflict)
 		WriteResponse(write, "Занятие на это время уже занято", true, http.StatusConflict)
 		return
 	}
 
 	write.WriteHeader(http.StatusOK)
-	WriteDataResponse(write, "Занятие успешно создан", false, http.StatusOK, newClassId)
+	WriteDataResponse(write, "Занятие успешно создано", false, http.StatusOK, newClassId)
 	return
 }
 
@@ -258,5 +259,40 @@ func (s *server) CancelClass(write http.ResponseWriter, request *http.Request) {
 
 	write.WriteHeader(http.StatusOK)
 	WriteDataResponse(write, "Занятие отменено", false, http.StatusOK, response.CanceledClass{Canceled: true, Key: classId})
+	return
+}
+
+func (s *server) DeleteClass(write http.ResponseWriter, request *http.Request) {
+	if request.Method != http.MethodDelete {
+		write.WriteHeader(http.StatusNotFound)
+		WriteResponse(write, "Неизвестный метод", true, http.StatusNotFound)
+		return
+	}
+
+	if isCoach, _ := s.checkCoachExistence(write, request, false); !isCoach {
+		if ok, _ := s.checkExistence(write, request); !ok {
+			return
+		}
+	}
+
+	classIdString := request.URL.Query().Get("classId")
+	classId, errConv := strconv.Atoi(classIdString)
+
+	if errConv != nil {
+		log.Println("err converting classId from query:", errConv)
+		write.WriteHeader(http.StatusBadRequest)
+		WriteResponse(write, "Произошла ошибка на сервере", true, http.StatusBadRequest)
+		return
+	}
+
+	if err := s.Store.DeleteClass(classId); err != nil {
+		log.Println("err at creating class:", err)
+		write.WriteHeader(http.StatusInternalServerError)
+		WriteResponse(write, "Произошла ошибка на сервере", true, http.StatusInternalServerError)
+		return
+	}
+
+	write.WriteHeader(http.StatusOK)
+	WriteDataResponse(write, "Занятие удалено", false, http.StatusOK, response.CanceledClass{Canceled: true, Key: classId})
 	return
 }

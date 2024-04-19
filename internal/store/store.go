@@ -46,6 +46,7 @@ type Store interface {
 
 	CreateClass(class requests.CreateClass) (id int, err error)
 	CancelClass(classId int) error
+	DeleteClass(classId int) error
 }
 
 type RgStore struct {

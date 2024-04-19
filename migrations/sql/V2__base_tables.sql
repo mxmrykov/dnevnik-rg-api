@@ -109,3 +109,8 @@ create table if not exists auth.auth_history
     ip           text,
     tm           timestamp
 );
+
+create table if not exists classes.deleted_classes as
+select *
+from classes.classes
+where false;

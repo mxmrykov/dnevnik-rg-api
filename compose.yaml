@@ -15,7 +15,6 @@ services:
     command: [ "docker-entrypoint.sh", "postgres" ]
     ports:
       - "5588:5432"
-
   flyway:
     image: flyway/flyway:10.11
     depends_on:
@@ -27,6 +26,14 @@ services:
     environment:
       - FLYWAY_LOCATIONS="filesystem:/flyway/sql"
     entrypoint: [ "sh", "-c", "/flyway/flyway -url=jdbc:postgresql://pg-shard-1:5432/dnevnik-rg.shard-1 -user=c128f7 -password=058cb8ee6a01b88f -locations=filesystem:/flyway/sql -connectRetries=3 migrate" ]
+  service:
+    build:
+      context: .
+      target: final
+    depends_on:
+      - postgres
+    ports:
+      - "8000:8000"
 #services:
 #  postgres:
 #    container_name: "pg-shard-1"

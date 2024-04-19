@@ -36,22 +36,6 @@ type (
 			DBName   string `required:"true" yaml:"PG_NAME" env:"PG_NAME"`
 			PgDriver string `required:"true" yaml:"PG_DRIVER" env:"PG_DRIVER"`
 		} `required:"true" yaml:"shard1" env:"shard1"`
-		Shard2 struct {
-			Host     string `required:"true" yaml:"PG_HOST" env:"PG_HOST"`
-			Port     string `required:"true" yaml:"PG_PORT" env:"PG_PORT"`
-			User     string `required:"true" yaml:"PG_USER" env:"PG_USER"`
-			Password string `required:"true" yaml:"PG_PASSWORD" env:"PG_PASSWORD"`
-			DBName   string `required:"true" yaml:"PG_NAME" env:"PG_NAME"`
-			PgDriver string `required:"true" yaml:"PG_DRIVER" env:"PG_DRIVER"`
-		} `required:"true" yaml:"shard2" env:"shard2"`
-		Shard3 struct {
-			Host     string `required:"true" yaml:"PG_HOST" env:"PG_HOST"`
-			Port     string `required:"true" yaml:"PG_PORT" env:"PG_PORT"`
-			User     string `required:"true" yaml:"PG_USER" env:"PG_USER"`
-			Password string `required:"true" yaml:"PG_PASSWORD" env:"PG_PASSWORD"`
-			DBName   string `required:"true" yaml:"PG_NAME" env:"PG_NAME"`
-			PgDriver string `required:"true" yaml:"PG_DRIVER" env:"PG_DRIVER"`
-		} `required:"true" yaml:"shard3" env:"shard3"`
 	}
 	TgBots struct {
 		TgTechBot struct {
@@ -62,7 +46,7 @@ type (
 
 func NewConfig() (*Config, error) {
 	config := &Config{}
-	// stageConfigPath := "/bin/config.yml"
+	//stageConfigPath := "/bin/config.yml"
 	localConfigPath := "config/local/config.yml"
 	if errReadConfig := cleanenv.ReadConfig(localConfigPath, config); errReadConfig != nil {
 		return nil, fmt.Errorf("error read config: %v", errReadConfig)

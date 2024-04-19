@@ -148,23 +148,9 @@ func (s *RgStore) GetPupilsNameByIds(ids []int) ([]string, error) {
 	defer cancel()
 
 	const query = `select * from users.get_pupils_names($1)`
-	var (
-		name  string
-		names []string
-	)
+	var names []string
 
-	rows, _ := s.s.Query(ctx, query, ids)
-
-	_, err := pgx.ForEachRow(
-		rows,
-		[]any{
-			&name,
-		},
-		func() error {
-			names = append(names, name)
-			return nil
-		})
-	if err != nil {
+	if err := s.s.QueryRow(ctx, query, ids).Scan(&names); err != nil {
 		return nil, err
 	}
 

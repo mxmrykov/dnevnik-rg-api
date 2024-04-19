@@ -11,23 +11,8 @@ POSTGRES:
     PG_NAME: "dnevnik-rg.shard-1"
     PG_HOST: "pg-shard-1"
     PG_PORT: "5432"
-    PG_USER: "30c128f7"
+    PG_USER: "c128f7"
     PG_PASSWORD: "058cb8ee6a01b88f"
-    PG_DRIVER: "pq"
-  shard2:
-    PG_NAME: "dnevnik-rg.shard-2"
-    PG_HOST: "pg-shard-2"
-    PG_PORT: "5432"
-    PG_USER: "30c128f7"
-    PG_PASSWORD: "058cb8ee6a01b88f"
-    PG_DRIVER: "pq"
-  shard3:
-    PG_NAME: "dnevnik-rg.shard-3"
-    PG_HOST: "pg-shard-3"
-    PG_PORT: "5432"
-    PG_USER: "30c128f7"
-    PG_PASSWORD: "058cb8ee6a01b88f"
-    PG_DRIVER: "pq"
 TG_BOTS:
   TECH_BOT:
     TG_TECH_TOKEN: "6902343077:AAERsYxj7p-_eiSLL4cFPaX90yWi_cY1jdQ"

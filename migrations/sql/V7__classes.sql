@@ -55,11 +55,19 @@ create or replace function classes.create_class_if_not_exists(
 as
 $$
 begin
-    insert into classes.classes (key, pupil, coach, class_date, class_time, class_dur, price, scheduled, classtype,
-                                 pupilcount, isopentosignup)
-    values (key_, pupil_, coach_, class_date_, class_time_, class_dur_, price_, true, class_type_, pupils_count_,
-            isopentosignup_)
-    returning key;
+    return query
+        insert into classes.classes as c (key, pupil, coach, class_date, class_time, class_dur, price, scheduled,
+                                          classtype,
+                                          pupilcount, isopentosignup)
+            values (key_, pupil_, coach_, class_date_, class_time_, class_dur_, price_, true, class_type_,
+                    pupils_count_,
+                    isopentosignup_);
+    return query
+        select cl.key
+        from classes.classes as cl
+        where cl.class_date = class_date_
+          and cl.class_time = class_time_
+          and cl.coach = coach_;
 end;
 $$;
 
@@ -67,7 +75,7 @@ drop function if exists classes.if_class_available(coach_ integer, class_date_ t
 create or replace function classes.if_class_available(coach_ integer, class_date_ text, class_time_ varchar(5))
     returns table
             (
-                count integer
+                count bigint
             )
     security definer
     language plpgsql
@@ -75,7 +83,11 @@ as
 $$
 begin
     return query
-        select count(*) from classes.classes where coach = coach_ and class_date = class_date_ and class_time = class_time_;
+        select count(*)
+        from classes.classes
+        where coach = coach_
+          and class_date = class_date_
+          and class_time = class_time_;
 end;
 $$;
 
@@ -123,5 +135,35 @@ as
 $$
 begin
     update classes set scheduled = false where key = class_id_;
+end;
+$$;
+
+drop function if exists classes.delete_class(class_id_ integer);
+create or replace function classes.delete_class(class_id_ integer)
+    returns void
+    security definer
+    language plpgsql
+as
+$$
+begin
+    insert into classes.deleted_classes (key, pupil, coach, class_date, class_time, class_dur, presence, price, mark,
+                                         review, scheduled, classtype, pupilcount, isopentosignup)
+        (select key,
+                pupil,
+                coach,
+                class_date,
+                class_time,
+                class_dur,
+                presence,
+                price,
+                mark,
+                review,
+                scheduled,
+                classtype,
+                pupilcount,
+                isopentosignup
+         from classes.classes as c
+         where c.key = class_id_);
+    delete from classes.classes as cl where cl.key = class_id_;
 end;
 $$;

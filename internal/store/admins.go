@@ -153,15 +153,15 @@ func (s *RgStore) GetAdminClassesForToday(date string) ([]models.ShortClassInfo,
 	_, err := pgx.ForEachRow(
 		rows,
 		[]any{
-			nil,
 			&classInfo.Key,
 			&classInfo.Pupils,
 			&classInfo.Coach,
 			&classInfo.ClassTime,
 			&classInfo.ClassDuration,
 			&classInfo.ClassType,
-			&classInfo.Scheduled,
 			&classInfo.PupilCount,
+			&classInfo.Scheduled,
+			&classInfo.IsOpenToSignUp,
 		},
 		func() error {
 			classesInfo = append(classesInfo, classInfo)
