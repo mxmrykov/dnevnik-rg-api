@@ -4,7 +4,7 @@ APP:
   DEPLOY: "localhost:8000"
   JWT_SECRET: "fb72b59c761f46c0690fdff1e15"
 HTTP:
-  HTTP_HOST: "localhost"
+  HTTP_HOST: "0.0.0.0"
   HTTP_PORT: "8000"
 POSTGRES:
   shard1:

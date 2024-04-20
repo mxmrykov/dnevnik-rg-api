@@ -59,4 +59,9 @@ type (
 		Canceled bool `json:"canceled"`
 		Key      int  `json:"key"`
 	}
+
+	DeletedClass struct {
+		Deleted bool `json:"deleted"`
+		Key     int  `json:"key"`
+	}
 )

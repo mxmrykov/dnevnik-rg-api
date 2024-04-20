@@ -55,13 +55,12 @@ create or replace function classes.create_class_if_not_exists(
 as
 $$
 begin
-    return query
-        insert into classes.classes as c (key, pupil, coach, class_date, class_time, class_dur, price, scheduled,
-                                          classtype,
-                                          pupilcount, isopentosignup)
-            values (key_, pupil_, coach_, class_date_, class_time_, class_dur_, price_, true, class_type_,
-                    pupils_count_,
-                    isopentosignup_);
+    insert into classes.classes as c (key, pupil, coach, class_date, class_time, class_dur, price, scheduled,
+                                      classtype,
+                                      pupilcount, isopentosignup)
+    values (key_, pupil_, coach_, class_date_, class_time_, class_dur_, price_, true, class_type_,
+            pupils_count_,
+            isopentosignup_);
     return query
         select cl.key
         from classes.classes as cl

@@ -234,7 +234,7 @@ func (s *server) GetClassesTodayPupil(write http.ResponseWriter, request *http.R
 }
 
 func (s *server) CancelClass(write http.ResponseWriter, request *http.Request) {
-	if request.Method != http.MethodPost {
+	if request.Method != http.MethodPut {
 		write.WriteHeader(http.StatusNotFound)
 		WriteResponse(write, "Неизвестный метод", true, http.StatusNotFound)
 		return
@@ -293,6 +293,6 @@ func (s *server) DeleteClass(write http.ResponseWriter, request *http.Request) {
 	}
 
 	write.WriteHeader(http.StatusOK)
-	WriteDataResponse(write, "Занятие удалено", false, http.StatusOK, response.CanceledClass{Canceled: true, Key: classId})
+	WriteDataResponse(write, "Занятие удалено", false, http.StatusOK, response.DeletedClass{Deleted: true, Key: classId})
 	return
 }

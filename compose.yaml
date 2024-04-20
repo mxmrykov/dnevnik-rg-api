@@ -31,36 +31,7 @@ services:
       context: .
       target: final
     depends_on:
-      - postgres
+      flyway:
+        condition: service_completed_successfully
     ports:
       - "8000:8000"
-#services:
-#  postgres:
-#    container_name: "pg-shard-1"
-#    image: postgres:14.0
-#    volumes:
-#      - ./migrations/schema.sql:/docker-entrypoint-initdb.d/init.shards.sql:ro
-#    environment:
-#      POSTGRES_DB: 'dnevnik-rg.shard-1'
-#      POSTGRES_USER: 'c128f7'
-#      POSTGRES_PASSWORD: '058cb8ee6a01b88f'
-#    ports:
-#      - '127.0.0.1:5588:5432'
-#  flyway:
-#    image: flyway/flyway:10.11
-#    depends_on:
-#      - postgres
-#    command:
-#      "-url=jdbc:postgresql://pg-shard-1:5432/dnevnik-rg.shard-1  -locations=filesystem:/flyway/sql -connectRetries=3 migrate"
-#    volumes:
-#      - ./migrations/sql:/flyway/sql
-#    env_file:
-#      - ./migrations/env/.env
-#    environment:
-#      - FLYWAY_LOCATIONS="filesystem:/flyway/sql"
-#  server:
-#    build:
-#      context: .
-#      target: final
-#    ports:
-#      - "8000:8000"
