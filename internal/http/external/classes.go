@@ -234,7 +234,7 @@ func (s *server) GetClassesTodayPupil(write http.ResponseWriter, request *http.R
 }
 
 func (s *server) CancelClass(write http.ResponseWriter, request *http.Request) {
-	if request.Method != http.MethodPut {
+	if request.Method != http.MethodPost {
 		write.WriteHeader(http.StatusNotFound)
 		WriteResponse(write, "Неизвестный метод", true, http.StatusNotFound)
 		return
@@ -251,7 +251,7 @@ func (s *server) CancelClass(write http.ResponseWriter, request *http.Request) {
 	}
 
 	if err := s.Store.CancelClass(classId); err != nil {
-		log.Println("err at creating class:", err)
+		log.Println("err at canceling class:", err)
 		write.WriteHeader(http.StatusInternalServerError)
 		WriteResponse(write, "Произошла ошибка на сервере", true, http.StatusInternalServerError)
 		return

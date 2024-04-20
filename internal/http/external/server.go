@@ -33,6 +33,7 @@ type Server interface {
 	GetClassesTodayCoach(write http.ResponseWriter, request *http.Request)
 	GetClassesTodayPupil(write http.ResponseWriter, request *http.Request)
 	CancelClass(write http.ResponseWriter, request *http.Request)
+	DeleteClass(write http.ResponseWriter, request *http.Request)
 
 	Authorize(write http.ResponseWriter, request *http.Request)
 
@@ -80,6 +81,7 @@ const (
 	GetClassesForDayCoach = "/classes/get/today/coach"
 	GetClassesForDayPupil = "/classes/get/today/pupil"
 	CancelClass           = "/classes/cancel"
+	DeleteClass           = "/classes/delete"
 
 	AuthRoute = "/auth"
 

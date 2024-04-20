@@ -125,20 +125,20 @@ begin
 end;
 $$;
 
-drop function if exists classes.cancel_class(class_id_ integer);
-create or replace function classes.cancel_class(class_id_ integer)
+drop function if exists classes.cancel_class(class_id_ bigint);
+create or replace function classes.cancel_class(class_id_ bigint)
     returns void
     security definer
     language plpgsql
 as
 $$
 begin
-    update classes set scheduled = false where key = class_id_;
+    update classes.classes set scheduled = false where key = class_id_;
 end;
 $$;
 
-drop function if exists classes.delete_class(class_id_ integer);
-create or replace function classes.delete_class(class_id_ integer)
+drop function if exists classes.delete_class(class_id_ bigint);
+create or replace function classes.delete_class(class_id_ bigint)
     returns void
     security definer
     language plpgsql
@@ -147,20 +147,20 @@ $$
 begin
     insert into classes.deleted_classes (key, pupil, coach, class_date, class_time, class_dur, presence, price, mark,
                                          review, scheduled, classtype, pupilcount, isopentosignup)
-        (select key,
-                pupil,
-                coach,
-                class_date,
-                class_time,
-                class_dur,
-                presence,
-                price,
-                mark,
-                review,
-                scheduled,
-                classtype,
-                pupilcount,
-                isopentosignup
+        (select c.key,
+                c.pupil,
+                c.coach,
+                c.class_date,
+                c.class_time,
+                c.class_dur,
+                c.presence,
+                c.price,
+                c.mark,
+                c.review,
+                c.scheduled,
+                c.classtype,
+                c.pupilcount,
+                c.isopentosignup
          from classes.classes as c
          where c.key = class_id_);
     delete from classes.classes as cl where cl.key = class_id_;
