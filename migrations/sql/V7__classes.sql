@@ -166,3 +166,60 @@ begin
     delete from classes.classes as cl where cl.key = class_id_;
 end;
 $$;
+
+create or replace function classes.get_classes_for_month_admin(today text, lastDate text)
+    returns table
+            (
+                key        bigint,
+                class_date text,
+                class_time varchar(5),
+                class_dur  varchar(5)
+            )
+    security definer
+    language plpgsql
+as
+$$
+begin
+    return query
+        select cl.key, cl.class_date, cl.class_time, cl.class_dur
+        from classes.classes cl
+        where cl.class_date >= today
+          and cl.class_date < lastDate
+        group by cl.class_date, cl.class_time, cl.class_dur, cl.key;
+end;
+$$;
+
+create or replace function classes.get_class_info(class_id bigint)
+    returns table
+            (
+                key            bigint,
+                pupil          integer[],
+                coach          integer,
+                class_date     text,
+                class_time     varchar(5),
+                class_dur      varchar(5),
+                classtype      varchar(10),
+                pupilcount     integer,
+                scheduled      boolean,
+                isopentosignup boolean
+            )
+    security definer
+    language plpgsql
+as
+$$
+begin
+    return query
+        select cl.key,
+               cl.pupil,
+               cl.coach,
+               cl.class_date,
+               cl.class_time,
+               cl.class_dur,
+               cl.classtype,
+               cl.pupilcount,
+               cl.scheduled,
+               cl.isopentosignup
+        from classes.classes as cl
+        where cl.key = class_id;
+end;
+$$;

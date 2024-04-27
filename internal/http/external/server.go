@@ -32,8 +32,12 @@ type Server interface {
 	GetClassesTodayAdmin(write http.ResponseWriter, request *http.Request)
 	GetClassesTodayCoach(write http.ResponseWriter, request *http.Request)
 	GetClassesTodayPupil(write http.ResponseWriter, request *http.Request)
+	GetClassesMonthAdmin(write http.ResponseWriter, request *http.Request)
+	GetClassesMonthCoach(write http.ResponseWriter, request *http.Request)
+	GetClassesMonthPupil(write http.ResponseWriter, request *http.Request)
 	CancelClass(write http.ResponseWriter, request *http.Request)
 	DeleteClass(write http.ResponseWriter, request *http.Request)
+	GetClassInfoAdmin(write http.ResponseWriter, request *http.Request)
 
 	Authorize(write http.ResponseWriter, request *http.Request)
 
@@ -75,13 +79,20 @@ const (
 	DeletePupilRoute  = "/users/pupil/delete"
 	GetPupilsList     = "/users/pupil/list"
 
-	GetCoachSchedule      = "/classes/coach/schedule"
-	CreateNewClass        = "/classes/new"
-	GetClassesForDayAdmin = "/classes/get/today/admin"
-	GetClassesForDayCoach = "/classes/get/today/coach"
-	GetClassesForDayPupil = "/classes/get/today/pupil"
-	CancelClass           = "/classes/cancel"
-	DeleteClass           = "/classes/delete"
+	GetCoachSchedule        = "/classes/coach/schedule"
+	CreateNewClass          = "/classes/new"
+	GetClassesForDayAdmin   = "/classes/get/today/admin"
+	GetClassesForDayCoach   = "/classes/get/today/coach"
+	GetClassesForDayPupil   = "/classes/get/today/pupil"
+	GetClassesForMonthAdmin = "/classes/get/month/admin"
+	GetClassesForMonthCoach = "/classes/get/month/coach"
+	GetClassesForMonthPupil = "/classes/get/month/pupil"
+	CancelClass             = "/classes/cancel"
+	DeleteClass             = "/classes/delete"
+	ClassesHistoryAdmin     = "/classes/history/admin"
+	ClassesHistoryCoach     = "/classes/history/coach"
+	ClassesHistoryPupil     = "/classes/history/pupil"
+	ClassInfoAdmin          = "/classes/get/admin"
 
 	AuthRoute = "/auth"
 

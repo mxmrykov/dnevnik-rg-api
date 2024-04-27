@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"time"
 
+	"dnevnik-rg.ru/internal/models"
 	requests "dnevnik-rg.ru/internal/models/request"
+	"github.com/jackc/pgx/v5"
 )
 
 func (s *RgStore) CreateClass(class requests.CreateClass) (int, error) {
@@ -67,4 +69,83 @@ func (s *RgStore) DeleteClass(classId int) error {
 	_, err := s.s.Exec(ctx, query, classId)
 
 	return err
+}
+
+func (s *RgStore) GetClassesForMonth(userType, today, lastDay string) ([]models.MicroClassInfo, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), s.operationTimeout)
+	defer cancel()
+	fmt.Println(today, lastDay)
+	var (
+		query   string
+		class   models.MicroClassInfo
+		classes []models.MicroClassInfo
+	)
+
+	switch userType {
+	case "ADMIN":
+		query = `select * from classes.get_classes_for_month_admin($1, $2)`
+	}
+
+	rows, err := s.s.Query(ctx, query, today, lastDay)
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	if _, err = pgx.ForEachRow(
+		rows,
+		[]any{
+			&class.Key,
+			&class.ClassDate,
+			&class.ClassTime,
+			&class.ClassDuration,
+		},
+		func() error {
+			classes = append(classes, class)
+			return nil
+		}); err != nil {
+		return nil, err
+	}
+
+	return classes, nil
+}
+
+func (s *RgStore) GetClassById(classId int) (*models.GetClassAdmin, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), s.operationTimeout)
+	defer cancel()
+
+	var class models.GetClassAdmin
+
+	const query = `select * from classes.get_class_info($1)`
+
+	err := s.s.QueryRow(ctx, query,
+		classId,
+	).Scan(
+		&class.Key,
+		&class.Pupils,
+		&class.Coach,
+		&class.ClassDate,
+		&class.ClassTime,
+		&class.ClassDuration,
+		&class.ClassType,
+		&class.Capacity,
+		&class.Scheduled,
+		&class.IsOpenToSignUp,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &class, nil
+}
+
+func (s *RgStore) HaveAccessToClass(userID int) (bool, error) {
+	_, cancel := context.WithTimeout(context.Background(), s.operationTimeout)
+	defer cancel()
+
+	// Получается здесь надо проверить что айдишник либо принадлежит тренеру и он
+	//	имеет такое занятие, либо этот айдишник - ученицы и она тоже имеет такое занятие
+	return false, nil
 }

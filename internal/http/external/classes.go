@@ -2,6 +2,7 @@ package external
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -294,5 +295,150 @@ func (s *server) DeleteClass(write http.ResponseWriter, request *http.Request) {
 
 	write.WriteHeader(http.StatusOK)
 	WriteDataResponse(write, "Занятие удалено", false, http.StatusOK, response.DeletedClass{Deleted: true, Key: classId})
+	return
+}
+
+func (s *server) GetClassesMonthAdmin(write http.ResponseWriter, request *http.Request) {
+	if request.Method != http.MethodGet {
+		write.WriteHeader(http.StatusNotFound)
+		WriteResponse(write, "Неизвестный метод", true, http.StatusNotFound)
+		return
+	}
+	if ok, _ := s.checkExistence(write, request); !ok {
+		return
+	}
+	today := time.Now()
+	lastDate := time.Now().Add(24 * 30 * time.Hour)
+
+	var month string
+
+	if today.Month() < 10 {
+		month = fmt.Sprintf("0%d", today.Month())
+	} else {
+		month = fmt.Sprintf("%d", today.Month())
+	}
+
+	stringToday := fmt.Sprintf("%d-%s-%d", today.Year(), month, today.Day())
+
+	if lastDate.Month() < 10 {
+		month = fmt.Sprintf("0%d", lastDate.Month())
+	} else {
+		month = fmt.Sprintf("%d", lastDate.Month())
+	}
+
+	stringLastDay := fmt.Sprintf("%d-%s-%d", lastDate.Year(), month, lastDate.Day())
+
+	classes, err := s.Store.GetClassesForMonth("ADMIN", stringToday, stringLastDay)
+	if err != nil {
+		log.Println("err at creating class:", err)
+		write.WriteHeader(http.StatusInternalServerError)
+		WriteResponse(write, "Произошла ошибка на сервере", true, http.StatusInternalServerError)
+		return
+	}
+	c, err := utils.FillMonthCalendar(stringToday, stringLastDay, classes)
+	if err != nil {
+		log.Println("err at listing classes:", err)
+		write.WriteHeader(http.StatusInternalServerError)
+		WriteResponse(write, "Произошла ошибка на сервере", true, http.StatusInternalServerError)
+		return
+	}
+
+	write.WriteHeader(http.StatusOK)
+	WriteDataResponse(write, "Список занятий получен", false, http.StatusOK, c)
+	return
+
+}
+func (s *server) GetClassesMonthCoach(write http.ResponseWriter, request *http.Request) {
+	if request.Method != http.MethodGet {
+		write.WriteHeader(http.StatusNotFound)
+		WriteResponse(write, "Неизвестный метод", true, http.StatusNotFound)
+		return
+	}
+	if isCoach, _ := s.checkCoachExistence(write, request, false); !isCoach {
+		if ok, _ := s.checkExistence(write, request); !ok {
+			return
+		}
+	}
+}
+func (s *server) GetClassesMonthPupil(write http.ResponseWriter, request *http.Request) {
+	if request.Method != http.MethodGet {
+		write.WriteHeader(http.StatusNotFound)
+		WriteResponse(write, "Неизвестный метод", true, http.StatusNotFound)
+		return
+	}
+}
+
+func (s *server) GetClassInfoAdmin(write http.ResponseWriter, request *http.Request) {
+	if request.Method != http.MethodGet {
+		write.WriteHeader(http.StatusNotFound)
+		WriteResponse(write, "Неизвестный метод", true, http.StatusNotFound)
+		return
+	}
+	if ok, _ := s.checkExistence(write, request); !ok {
+		return
+	}
+
+	classIdString := request.URL.Query().Get("classId")
+	classId, err := strconv.Atoi(classIdString)
+	if err != nil {
+		write.WriteHeader(http.StatusBadRequest)
+		WriteResponse(write, "Неверный ID занятия", true, http.StatusBadRequest)
+		return
+	}
+
+	class, err := s.Store.GetClassById(classId)
+
+	if err != nil && err.Error() == "no rows in result set" {
+		log.Println("cannot resolve class with such id:", classId)
+		write.WriteHeader(http.StatusNotFound)
+		WriteResponse(write, "Занятия не существует", true, http.StatusNotFound)
+		return
+	}
+
+	if err != nil {
+		log.Println("err at getting class:", err)
+		write.WriteHeader(http.StatusInternalServerError)
+		WriteResponse(write, "Произошла ошибка на сервере", true, http.StatusInternalServerError)
+		return
+	}
+
+	var pupils []int
+	for _, pupilID := range class.Pupils {
+		pupils = append(pupils, pupilID)
+	}
+	stringPupils, err := s.Store.GetPupilsNameByIds(pupils)
+	if err != nil {
+		log.Println("err at getting pupils names:", err)
+		write.WriteHeader(http.StatusInternalServerError)
+		WriteResponse(write, "Произошла ошибка на сервере", true, http.StatusInternalServerError)
+		return
+	}
+	coachString, err := s.Store.GetCoachNameById(class.Coach)
+	if err != nil {
+		log.Println("err at getting pupils names:", err)
+		write.WriteHeader(http.StatusInternalServerError)
+		WriteResponse(write, "Произошла ошибка на сервере", true, http.StatusInternalServerError)
+		return
+	}
+
+	resp := models.ShortStringClassInfo{
+		Key:            class.Key,
+		Coach:          *coachString,
+		Pupils:         make([]string, 0, len(pupils)),
+		ClassDate:      class.ClassDate,
+		ClassTime:      class.ClassTime,
+		ClassDuration:  class.ClassDuration,
+		ClassType:      class.ClassType,
+		PupilCount:     class.PupilCount,
+		Scheduled:      class.Scheduled,
+		IsOpenToSignUp: class.IsOpenToSignUp,
+	}
+
+	for _, pupil := range stringPupils {
+		resp.Pupils = append(resp.Pupils, pupil)
+	}
+
+	write.WriteHeader(http.StatusOK)
+	WriteDataResponse(write, "Список занятий получен", false, http.StatusOK, resp)
 	return
 }

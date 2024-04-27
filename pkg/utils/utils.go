@@ -236,3 +236,25 @@ func HashSumGen(key int, checksum string) string {
 	)
 	return hex.EncodeToString(sum[:])
 }
+
+type monthCalendar map[string][]models.MicroClassInfo
+
+func FillMonthCalendar(firstDay, lastDay string, classes []models.MicroClassInfo) (monthCalendar, error) {
+	calendar := make(monthCalendar)
+	today, err := time.Parse("2006-01-02", firstDay)
+	if err != nil {
+		return nil, err
+	}
+	last, err := time.Parse("2006-01-02", lastDay)
+	if err != nil {
+		return nil, err
+	}
+	for day := today; day.Before(last) || day.Equal(last); day = day.Add(24 * time.Hour) {
+		calendar[day.Format("2006-01-02")] = make([]models.MicroClassInfo, 0)
+	}
+
+	for _, class := range classes {
+		calendar[class.ClassDate] = append(calendar[class.ClassDate], class)
+	}
+	return calendar, nil
+}
