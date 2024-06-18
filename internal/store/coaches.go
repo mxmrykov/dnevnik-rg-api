@@ -276,3 +276,42 @@ func (s *RgStore) GetCoachNameById(id int) (*string, error) {
 
 	return &fio, nil
 }
+
+func (s *RgStore) ArchiveCoach(key int) error {
+	ctx, cancel := context.WithTimeout(context.Background(), s.operationTimeout)
+	defer cancel()
+
+	const query = `select from archive.archive_coach($1)`
+
+	_, err := s.s.Exec(ctx, query, key)
+
+	return err
+}
+
+func (s *RgStore) ArchiveCoachGet() ([]response.CoachList, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), s.operationTimeout)
+	defer cancel()
+
+	const query = `select * from archive.get_coaches()`
+	var (
+		coach   response.CoachList
+		coaches []response.CoachList
+	)
+
+	rows, _ := s.s.Query(ctx, query)
+
+	if _, err := pgx.ForEachRow(
+		rows,
+		[]any{
+			&coach.Key,
+			&coach.Fio,
+		},
+		func() error {
+			coaches = append(coaches, coach)
+			return nil
+		}); err != nil {
+		return nil, err
+	}
+
+	return coaches, nil
+}

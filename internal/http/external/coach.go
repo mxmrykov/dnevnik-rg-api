@@ -341,3 +341,48 @@ func (s *server) GetNearestBirthdays(write http.ResponseWriter, request *http.Re
 	WriteDataResponse(write, "Список ближайших дней рождений получен", false, http.StatusOK, bdays)
 	return
 }
+
+func (s *server) ArchiveCoach(write http.ResponseWriter, request *http.Request) {
+	if request.Method != http.MethodPost {
+		write.WriteHeader(http.StatusNotFound)
+		WriteResponse(write, "Неизвестный метод", true, http.StatusNotFound)
+		return
+	}
+	coachIdString := request.URL.Query().Get("coachId")
+	if isAdmin, _ := s.checkExistence(write, request); !isAdmin {
+		return
+	}
+	coachId, errConvCoach := strconv.Atoi(coachIdString)
+	if errConvCoach != nil {
+		write.WriteHeader(http.StatusInternalServerError)
+		WriteResponse(write, "Произошла ошибка на сервере", true, http.StatusInternalServerError)
+		return
+	}
+	if errArchiveCoach := s.Store.ArchiveCoach(coachId); errArchiveCoach != nil {
+		log.Printf("error returns archive coach: %v\n", errArchiveCoach)
+		write.WriteHeader(http.StatusNotFound)
+		WriteResponse(write, "Не удалось архивировать тренера", true, http.StatusNotFound)
+		return
+	}
+	s.CoachesCache.RemoveCoach(coachId)
+	write.WriteHeader(http.StatusOK)
+	WriteResponse(write, "Тренер архивирован", false, http.StatusOK)
+	return
+}
+func (s *server) ArchiveCoachGet(write http.ResponseWriter, request *http.Request) {
+	if request.Method != http.MethodGet {
+		write.WriteHeader(http.StatusNotFound)
+		WriteResponse(write, "Неизвестный метод", true, http.StatusNotFound)
+		return
+	}
+	coaches, errGetArchiveCoaches := s.Store.ArchiveCoachGet()
+	if errGetArchiveCoaches != nil {
+		log.Printf("error returns archive coach: %v\n", errGetArchiveCoaches)
+		write.WriteHeader(http.StatusNotFound)
+		WriteResponse(write, "Не удалось получить архивных тренеров", true, http.StatusInternalServerError)
+		return
+	}
+	write.WriteHeader(http.StatusOK)
+	WriteDataResponse(write, " Архивированные тренеры получены", false, http.StatusOK, coaches)
+	return
+}

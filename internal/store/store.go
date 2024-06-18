@@ -16,6 +16,8 @@ type Store interface {
 	GetPupil(key int) (*response.Pupil, error)
 	UpdatePupil(sql string) error
 	DeletePupil(key int) error
+	ArchivePupil(key int) error
+	ArchivePupilGet() ([]response.PupilList, error)
 	GetPupilsNameByIds(ids []int) ([]string, error)
 
 	NewAdmin(admin models.Admin) error
@@ -32,6 +34,8 @@ type Store interface {
 	GetCoachFull(key int) (*response.CoachFull, error)
 	UpdateCoach(sql string) error
 	DeleteCoach(key int) error
+	ArchiveCoach(key int) error
+	ArchiveCoachGet() ([]response.CoachList, error)
 	GetCoachPupils(coachId int) ([]response.PupilList, error)
 	IsCoachExists(key int) (bool, error)
 	GetBirthdaysList(key int) ([]requests.BirthDayList, error)
@@ -49,6 +53,7 @@ type Store interface {
 	DeleteClass(classId int) error
 	GetClassesForMonth(userType, today, lastDay string) ([]models.MicroClassInfo, error)
 	GetClassById(classId int) (*models.GetClassAdmin, error)
+	GetTodayPupilClasses(userID int, date string) ([]models.PupilClassInfo, error)
 	HaveAccessToClass(userID int) (bool, error)
 }
 

@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
 	"dnevnik-rg.ru/internal/models"
 	requests "dnevnik-rg.ru/internal/models/request"
 	"dnevnik-rg.ru/internal/models/response"
+	"github.com/golang-jwt/jwt"
 
 	"dnevnik-rg.ru/pkg/utils"
 )
@@ -231,7 +233,41 @@ func (s *server) GetClassesTodayCoach(write http.ResponseWriter, request *http.R
 
 }
 func (s *server) GetClassesTodayPupil(write http.ResponseWriter, request *http.Request) {
+	if request.Method != http.MethodGet {
+		write.WriteHeader(http.StatusNotFound)
+		WriteResponse(write, "Неизвестный метод", true, http.StatusNotFound)
+		return
+	}
 
+	Auth := request.Header.Get("Authorization")
+	user, errConv := strconv.Atoi(Auth)
+
+	if errConv != nil {
+		write.WriteHeader(http.StatusBadRequest)
+		WriteResponse(write, "Неверный ID пользователя", true, http.StatusBadRequest)
+		return
+	}
+
+	var date string
+
+	date = request.URL.Query().Get("date")
+
+	if !verifyPupil(request) {
+		if ok, _ := s.checkExistence(write, request); !ok {
+			return
+		}
+	}
+
+	classes, err := s.Store.GetTodayPupilClasses(user, date)
+	if err != nil {
+		write.WriteHeader(http.StatusInternalServerError)
+		WriteResponse(write, "Ошибка сервера", true, http.StatusInternalServerError)
+		return
+	}
+
+	write.WriteHeader(http.StatusOK)
+	WriteDataResponse(write, "Список занятий на сегодня получен", false, http.StatusOK, classes)
+	return
 }
 
 func (s *server) CancelClass(write http.ResponseWriter, request *http.Request) {
@@ -441,4 +477,27 @@ func (s *server) GetClassInfoAdmin(write http.ResponseWriter, request *http.Requ
 	write.WriteHeader(http.StatusOK)
 	WriteDataResponse(write, "Список занятий получен", false, http.StatusOK, resp)
 	return
+}
+
+func verifyPupil(request *http.Request) bool {
+	Auth := request.Header.Get("Authorization")
+	_, errParse := jwt.Parse(Auth, func(token *jwt.Token) (interface{}, error) {
+		return []byte(os.Getenv("JWT_SECRET")), nil
+	})
+	if errParse != nil {
+		log.Println("error at parsing token: ", errParse)
+		return false
+	}
+	payload, err := utils.GetJwtPayload(Auth)
+	if err != nil {
+		log.Println("error at parsing token: ", errParse)
+		return false
+	}
+	if convId, errConvId := strconv.Atoi(
+		request.Header.Get("X-User-Id"),
+	); errConvId == nil && convId == payload.Key {
+		return true
+	} else {
+		return false
+	}
 }

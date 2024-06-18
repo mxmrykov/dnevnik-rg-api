@@ -223,3 +223,40 @@ begin
         where cl.key = class_id;
 end;
 $$;
+
+drop function if exists classes.get_classes_for_today_pupil(class_date_ text, user_id int);
+create or replace function classes.get_classes_for_today_pupil(class_date_ text, user_id int)
+    returns table
+            (
+                key            bigint,
+                class_date     text,
+                class_time     varchar(5),
+                class_dur      varchar(5),
+                coach          text,
+                classtype      varchar(10),
+                pupilcount     integer,
+                scheduled      boolean,
+                capacity       int,
+                isopentosignup boolean
+            )
+    security definer
+    language plpgsql
+as
+$$
+begin
+    return query
+        select cl.key,
+               cl.class_date,
+               cl.class_time,
+               cl.class_dur,
+               (select c.fio from users.coaches as c where c.key = cl.coach),
+               cl.classtype,
+               cl.pupilcount,
+               cl.scheduled,
+               array_length(cl.pupil, 1) as capacity,
+               cl.isopentosignup
+        from classes.classes as cl
+        where cl.class_date = class_date_ and user_id = any(cl.pupil)
+        order by class_time;
+end;
+$$;

@@ -18,6 +18,8 @@ type Server interface {
 	GetCoachFull(write http.ResponseWriter, request *http.Request)
 	UpdateCoach(write http.ResponseWriter, request *http.Request)
 	DeleteCoach(write http.ResponseWriter, request *http.Request)
+	ArchiveCoach(write http.ResponseWriter, request *http.Request)
+	ArchiveCoachGet(write http.ResponseWriter, request *http.Request)
 
 	GetAllPupilsForCoach(write http.ResponseWriter, request *http.Request)
 	CreatePupil(write http.ResponseWriter, request *http.Request)
@@ -26,6 +28,8 @@ type Server interface {
 	UpdatePupil(write http.ResponseWriter, request *http.Request)
 	DeletePupil(write http.ResponseWriter, request *http.Request)
 	GetAllPupilsList(write http.ResponseWriter, request *http.Request)
+	ArchivePupil(write http.ResponseWriter, request *http.Request)
+	ArchivePupilGet(write http.ResponseWriter, request *http.Request)
 
 	GetCoachSchedule(write http.ResponseWriter, request *http.Request)
 	CreateClass(write http.ResponseWriter, request *http.Request)
@@ -69,6 +73,8 @@ const (
 	GetCoachFullRoute  = "/users/coach/get/full"
 	UpdateCoachRoute   = "/users/coach/update"
 	DeleteCoachRoute   = "/users/coach/delete"
+	ArchiveCoachRoute  = "/users/coach/archive"
+	GetArchiveCoaches  = "/users/coach/archive/get"
 	GetCoachPupilsList = "/users/coach/pupils"
 	GetCoachesList     = "/users/coach/list"
 
@@ -77,6 +83,8 @@ const (
 	GetPupilFullRoute = "/users/pupil/get/full"
 	UpdatePupilRoute  = "/users/pupil/update"
 	DeletePupilRoute  = "/users/pupil/delete"
+	ArchivePupilRoute = "/users/pupil/archive"
+	GetArchivePupils  = "/users/pupil/archive/get"
 	GetPupilsList     = "/users/pupil/list"
 
 	GetCoachSchedule        = "/classes/coach/schedule"

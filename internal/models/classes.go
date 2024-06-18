@@ -60,3 +60,13 @@ type GetClassAdmin struct {
 	Capacity       int    `json:"capacity"`
 	IsOpenToSignUp bool   `json:"is_open_to_sign_up"`
 }
+
+type PupilClassInfo struct {
+	MicroClassInfo
+	Coach          string `json:"coach"`
+	ClassType      string `json:"class_type"`
+	PupilCount     int    `json:"pupil_count"`
+	Scheduled      bool   `json:"scheduled"`
+	Capacity       int    `json:"capacity"`
+	IsOpenToSignUp bool   `json:"is_open_to_sign_up"`
+}

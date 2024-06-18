@@ -74,7 +74,6 @@ func (s *RgStore) DeleteClass(classId int) error {
 func (s *RgStore) GetClassesForMonth(userType, today, lastDay string) ([]models.MicroClassInfo, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), s.operationTimeout)
 	defer cancel()
-	fmt.Println(today, lastDay)
 	var (
 		query   string
 		class   models.MicroClassInfo
@@ -148,4 +147,46 @@ func (s *RgStore) HaveAccessToClass(userID int) (bool, error) {
 	// Получается здесь надо проверить что айдишник либо принадлежит тренеру и он
 	//	имеет такое занятие, либо этот айдишник - ученицы и она тоже имеет такое занятие
 	return false, nil
+}
+
+func (s *RgStore) GetTodayPupilClasses(userID int, date string) ([]models.PupilClassInfo, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), s.operationTimeout)
+	defer cancel()
+	var (
+		query   string
+		class   models.PupilClassInfo
+		classes []models.PupilClassInfo
+	)
+
+	query = `select * from classes.get_classes_for_today_pupil($1, $2)`
+
+	rows, err := s.s.Query(ctx, query, date, userID)
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	if _, err = pgx.ForEachRow(
+		rows,
+		[]any{
+			&class.Key,
+			&class.ClassDate,
+			&class.ClassTime,
+			&class.ClassDuration,
+			&class.Coach,
+			&class.ClassType,
+			&class.PupilCount,
+			&class.Scheduled,
+			&class.Capacity,
+			&class.IsOpenToSignUp,
+		},
+		func() error {
+			classes = append(classes, class)
+			return nil
+		}); err != nil {
+		return nil, err
+	}
+
+	return classes, nil
 }

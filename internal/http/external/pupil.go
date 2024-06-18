@@ -258,8 +258,7 @@ func (s *server) DeletePupil(write http.ResponseWriter, request *http.Request) {
 		return
 	}
 	pupilIdString := request.URL.Query().Get("pupilId")
-	ok, _ := s.checkCoachExistence(write, request, true)
-	if !ok {
+	if isAdmin, _ := s.checkExistence(write, request); !isAdmin {
 		return
 	}
 	pupilId, errConvCoach := strconv.Atoi(pupilIdString)
@@ -299,5 +298,79 @@ func (s *server) GetAllPupilsList(write http.ResponseWriter, request *http.Reque
 	}
 	write.WriteHeader(http.StatusOK)
 	WriteDataResponse(write, "Список учениц получен", false, http.StatusOK, pupils)
+	return
+}
+
+func (s *server) ArchivePupil(write http.ResponseWriter, request *http.Request) {
+	if request.Method != http.MethodPost {
+		write.WriteHeader(http.StatusNotFound)
+		WriteResponse(write, "Неизвестный метод", true, http.StatusNotFound)
+		return
+	}
+	pupilIdString := request.URL.Query().Get("pupilId")
+	if isAdmin, _ := s.checkExistence(write, request); !isAdmin {
+		return
+	}
+	pupilId, errConvCoach := strconv.Atoi(pupilIdString)
+	if errConvCoach != nil {
+		write.WriteHeader(http.StatusInternalServerError)
+		WriteResponse(write, "Произошла ошибка на сервере", true, http.StatusInternalServerError)
+		return
+	}
+	if errDeletePupil := s.Store.ArchivePupil(pupilId); errDeletePupil != nil {
+		log.Printf("error returns archive pupil: %v\n", errDeletePupil)
+		write.WriteHeader(http.StatusNotFound)
+		WriteResponse(write, "Не удалось архивировать ученицу", true, http.StatusNotFound)
+		return
+	}
+	s.PupilsCache.RemovePupil(pupilId)
+	write.WriteHeader(http.StatusOK)
+	WriteResponse(write, "Ученица архивирована", false, http.StatusOK)
+	return
+}
+
+func (s *server) ArchivePupilGet(write http.ResponseWriter, request *http.Request) {
+	if request.Method != http.MethodGet {
+		write.WriteHeader(http.StatusNotFound)
+		WriteResponse(write, "Неизвестный метод", true, http.StatusNotFound)
+		return
+	}
+	pupils, errGetArchivePupils := s.Store.ArchivePupilGet()
+	if errGetArchivePupils != nil {
+		log.Printf("error returns archive pupil: %v\n", errGetArchivePupils)
+		write.WriteHeader(http.StatusNotFound)
+		WriteResponse(write, "Не удалось получить архивных учениц", true, http.StatusInternalServerError)
+		return
+	}
+	write.WriteHeader(http.StatusOK)
+	WriteDataResponse(write, " Архивированные ученицы получены", false, http.StatusOK, pupils)
+	return
+}
+
+func (s *server) DearchivePupil(write http.ResponseWriter, request *http.Request) {
+	if request.Method != http.MethodPost {
+		write.WriteHeader(http.StatusNotFound)
+		WriteResponse(write, "Неизвестный метод", true, http.StatusNotFound)
+		return
+	}
+	pupilIdString := request.URL.Query().Get("pupilId")
+	if isAdmin, _ := s.checkExistence(write, request); !isAdmin {
+		return
+	}
+	pupilId, errConvCoach := strconv.Atoi(pupilIdString)
+	if errConvCoach != nil {
+		write.WriteHeader(http.StatusInternalServerError)
+		WriteResponse(write, "Произошла ошибка на сервере", true, http.StatusInternalServerError)
+		return
+	}
+	if errDeletePupil := s.Store.ArchivePupil(pupilId); errDeletePupil != nil {
+		log.Printf("error returns archive pupil: %v\n", errDeletePupil)
+		write.WriteHeader(http.StatusNotFound)
+		WriteResponse(write, "Не удалось разархивировать ученицу", true, http.StatusNotFound)
+		return
+	}
+	s.PupilsCache.RemovePupil(pupilId)
+	write.WriteHeader(http.StatusOK)
+	WriteResponse(write, "Ученица разархивирована", false, http.StatusOK)
 	return
 }

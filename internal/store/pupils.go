@@ -156,3 +156,42 @@ func (s *RgStore) GetPupilsNameByIds(ids []int) ([]string, error) {
 
 	return names, nil
 }
+
+func (s *RgStore) ArchivePupil(key int) error {
+	ctx, cancel := context.WithTimeout(context.Background(), s.operationTimeout)
+	defer cancel()
+
+	const query = `select from archive.archive_pupil($1)`
+
+	_, err := s.s.Exec(ctx, query, key)
+
+	return err
+}
+
+func (s *RgStore) ArchivePupilGet() ([]response.PupilList, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), s.operationTimeout)
+	defer cancel()
+
+	const query = `select * from archive.get_pupils()`
+	var (
+		pupil  response.PupilList
+		pupils []response.PupilList
+	)
+
+	rows, _ := s.s.Query(ctx, query)
+
+	if _, err := pgx.ForEachRow(
+		rows,
+		[]any{
+			&pupil.Key,
+			&pupil.Fio,
+		},
+		func() error {
+			pupils = append(pupils, pupil)
+			return nil
+		}); err != nil {
+		return nil, err
+	}
+
+	return pupils, nil
+}

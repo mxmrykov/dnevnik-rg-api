@@ -250,8 +250,8 @@ $$
 begin
     insert into users.deleted_pupils
     (UDID, key, fio, date_reg, coach, home_city, training_city, birthday, about, coach_review, logo_uri, role)
-            (select * from users.pupils where key = key_);
-    delete from users.pupils where key = key_;
+            (select * from users.pupils up where up.key = key_);
+    delete from users.pupils dp where dp.key = key_;
 end;
 $$;
 
@@ -542,5 +542,99 @@ begin
             end if;
         end loop;
     return next;
+end;
+$$;
+
+drop function if exists archive.archive_pupil(pupil_id int);
+create or replace function archive.archive_pupil(pupil_id int)
+    returns void
+    security definer
+    language plpgsql
+as
+$$
+begin
+    insert into archive.archived_pupils
+    (UDID, key, fio, date_reg, coach, home_city, training_city, birthday, about, coach_review, logo_uri, role)
+            (select * from users.pupils up where up.key = pupil_id);
+    delete from users.pupils dp where dp.key = pupil_id;
+end;
+$$;
+
+drop function if exists archive.archive_coach(int);
+create or replace function archive.archive_coach(coach_id int)
+    returns void
+    security definer
+    language plpgsql
+as
+$$
+begin
+    insert into archive.archived_coaches
+    (UDID, key, fio, date_reg, home_city, training_city, birthday, about, logo_uri, role)
+        (select * from users.coaches up where up.key = coach_id);
+    delete from users.coaches dp where dp.key = coach_id;
+end;
+$$;
+
+drop function if exists archive.get_pupils();
+create or replace function archive.get_pupils()
+    returns table
+            (
+                key int,
+                fio text
+            )
+    security definer
+    language plpgsql
+as
+$$
+begin
+    return query
+        select ap.key, ap.fio from archive.archived_pupils ap;
+end;
+$$;
+
+drop function if exists archive.get_coaches();
+create or replace function archive.get_coaches()
+    returns table
+            (
+                key int,
+                fio text
+            )
+    security definer
+    language plpgsql
+as
+$$
+begin
+    return query
+        select ac.key, ac.fio from archive.archived_coaches ac;
+end;
+$$;
+
+drop function if exists archive.dearchivate_pupil(int);
+create or replace function archive.dearchivate_pupil(pupil_id int)
+    returns void
+    security definer
+    language plpgsql
+as
+$$
+begin
+    insert into users.pupils
+    (UDID, key, fio, date_reg, coach, home_city, training_city, birthday, about, coach_review, logo_uri, role)
+            (select * from archive.archived_pupils up where up.key = pupil_id);
+    delete from archive.archived_pupils dp where dp.key = pupil_id;
+end;
+$$;
+
+drop function if exists archive.dearchivate_coach(int);
+create or replace function archive.dearchivate_coach(coach_id int)
+    returns void
+    security definer
+    language plpgsql
+as
+$$
+begin
+    insert into users.coaches
+    (UDID, key, fio, date_reg, home_city, training_city, birthday, about, logo_uri, role)
+        (select * from archive.archived_coaches up where up.key = coach_id);
+    delete from archive.archived_coaches dp where dp.key = coach_id;
 end;
 $$;
