@@ -195,3 +195,14 @@ func (s *RgStore) ArchivePupilGet() ([]response.PupilList, error) {
 
 	return pupils, nil
 }
+
+func (s *RgStore) DearchivePupil(key int) error {
+	ctx, cancel := context.WithTimeout(context.Background(), s.operationTimeout)
+	defer cancel()
+
+	const query = `select from archive.dearchivate_pupil($1)`
+
+	_, err := s.s.Exec(ctx, query, key)
+
+	return err
+}

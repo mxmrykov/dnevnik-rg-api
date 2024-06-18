@@ -17,6 +17,7 @@ type Store interface {
 	UpdatePupil(sql string) error
 	DeletePupil(key int) error
 	ArchivePupil(key int) error
+	DearchivePupil(key int) error
 	ArchivePupilGet() ([]response.PupilList, error)
 	GetPupilsNameByIds(ids []int) ([]string, error)
 
@@ -35,6 +36,7 @@ type Store interface {
 	UpdateCoach(sql string) error
 	DeleteCoach(key int) error
 	ArchiveCoach(key int) error
+	DearchiveCoach(key int) error
 	ArchiveCoachGet() ([]response.CoachList, error)
 	GetCoachPupils(coachId int) ([]response.PupilList, error)
 	IsCoachExists(key int) (bool, error)

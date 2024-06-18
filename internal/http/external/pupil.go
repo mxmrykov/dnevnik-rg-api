@@ -363,13 +363,12 @@ func (s *server) DearchivePupil(write http.ResponseWriter, request *http.Request
 		WriteResponse(write, "Произошла ошибка на сервере", true, http.StatusInternalServerError)
 		return
 	}
-	if errDeletePupil := s.Store.ArchivePupil(pupilId); errDeletePupil != nil {
-		log.Printf("error returns archive pupil: %v\n", errDeletePupil)
-		write.WriteHeader(http.StatusNotFound)
-		WriteResponse(write, "Не удалось разархивировать ученицу", true, http.StatusNotFound)
+	if errDearchivePupil := s.Store.DearchivePupil(pupilId); errDearchivePupil != nil {
+		log.Printf("error returns archive pupil: %v\n", errDearchivePupil)
+		write.WriteHeader(http.StatusInternalServerError)
+		WriteResponse(write, "Не удалось разархивировать ученицу", true, http.StatusInternalServerError)
 		return
 	}
-	s.PupilsCache.RemovePupil(pupilId)
 	write.WriteHeader(http.StatusOK)
 	WriteResponse(write, "Ученица разархивирована", false, http.StatusOK)
 	return

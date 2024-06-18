@@ -64,6 +64,9 @@ func NewHttp(configHttp *config.Http, rgStore store.Store, recoveryRequired bool
 	mux.HandleFunc(external.GroupV1+external.GetCoachesList, server.GetAllCoachList)
 	mux.HandleFunc(external.GroupV1+external.GetArchiveCoaches, server.ArchiveCoachGet)
 	mux.HandleFunc(external.GroupV1+external.ArchiveCoachRoute, server.ArchiveCoach)
+	mux.Handle(external.GroupV1+external.DeArchiveCoach,
+		external.CheckCoachId(http.HandlerFunc(server.DearchiveCoach)),
+	)
 
 	//Group Pupils
 	mux.HandleFunc(external.GroupV1+external.CreatePupilRoute, server.CreatePupil)
@@ -80,6 +83,9 @@ func NewHttp(configHttp *config.Http, rgStore store.Store, recoveryRequired bool
 	mux.HandleFunc(external.GroupV1+external.ArchivePupilRoute, server.ArchivePupil)
 	mux.HandleFunc(external.GroupV1+external.GetArchivePupils, server.ArchivePupilGet)
 	mux.HandleFunc(external.GroupV1+external.GetPupilsList, server.GetAllPupilsList)
+	mux.Handle(external.GroupV1+external.DeArchivePupil,
+		external.CheckPupilId(http.HandlerFunc(server.DearchivePupil)),
+	)
 
 	//Group Classes
 	mux.HandleFunc(external.GroupV1+external.GetCoachSchedule, server.GetCoachSchedule)

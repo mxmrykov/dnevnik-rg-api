@@ -315,3 +315,14 @@ func (s *RgStore) ArchiveCoachGet() ([]response.CoachList, error) {
 
 	return coaches, nil
 }
+
+func (s *RgStore) DearchiveCoach(key int) error {
+	ctx, cancel := context.WithTimeout(context.Background(), s.operationTimeout)
+	defer cancel()
+
+	const query = `select from archive.dearchivate_coach($1)`
+
+	_, err := s.s.Exec(ctx, query, key)
+
+	return err
+}

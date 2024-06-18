@@ -386,3 +386,30 @@ func (s *server) ArchiveCoachGet(write http.ResponseWriter, request *http.Reques
 	WriteDataResponse(write, " Архивированные тренеры получены", false, http.StatusOK, coaches)
 	return
 }
+
+func (s *server) DearchiveCoach(write http.ResponseWriter, request *http.Request) {
+	if request.Method != http.MethodPost {
+		write.WriteHeader(http.StatusNotFound)
+		WriteResponse(write, "Неизвестный метод", true, http.StatusNotFound)
+		return
+	}
+	coachIdString := request.URL.Query().Get("coachId")
+	if isAdmin, _ := s.checkExistence(write, request); !isAdmin {
+		return
+	}
+	coachId, errConvCoach := strconv.Atoi(coachIdString)
+	if errConvCoach != nil {
+		write.WriteHeader(http.StatusInternalServerError)
+		WriteResponse(write, "Произошла ошибка на сервере", true, http.StatusInternalServerError)
+		return
+	}
+	if errDearchivePupil := s.Store.DearchiveCoach(coachId); errDearchivePupil != nil {
+		log.Printf("error returns archive pupil: %v\n", errDearchivePupil)
+		write.WriteHeader(http.StatusInternalServerError)
+		WriteResponse(write, "Не удалось разархивировать тренера", true, http.StatusInternalServerError)
+		return
+	}
+	write.WriteHeader(http.StatusOK)
+	WriteResponse(write, "Тренер разархивирован", false, http.StatusOK)
+	return
+}
