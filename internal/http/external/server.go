@@ -6,6 +6,7 @@ import (
 	"dnevnik-rg.ru/internal/cache"
 	"dnevnik-rg.ru/internal/models"
 	"dnevnik-rg.ru/internal/store"
+	"github.com/rs/zerolog"
 )
 
 type Server interface {
@@ -61,6 +62,7 @@ type server struct {
 	CoachesCache cache.ICoaches
 	AdminsCache  cache.IAdmin
 	Store        store.Store
+	Zerolog      *zerolog.Logger
 }
 
 const (
@@ -113,13 +115,14 @@ const (
 	GetPupilsBirthdayList = "/additional/birthday/list"
 )
 
-func NewServer(rgStore store.Store) Server {
+func NewServer(rgStore store.Store, logger *zerolog.Logger) Server {
 	c := cache.NewCache()
 	return &server{
 		PupilsCache:  c.NewPupilsCache(),
 		CoachesCache: c.NewCoachesCache(),
 		AdminsCache:  c.NewAdminsCache(),
 		Store:        rgStore,
+		Zerolog:      logger,
 	}
 }
 

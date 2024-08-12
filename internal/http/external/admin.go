@@ -3,7 +3,6 @@ package external
 import (
 	"encoding/base64"
 	"encoding/json"
-	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -37,7 +36,7 @@ func (s *server) CreateAdmin(write http.ResponseWriter, request *http.Request) {
 	cs := base64.StdEncoding.EncodeToString(byteArr)
 	token, errCreateToken := utils.SetLongJwt(key, cs, "ADMIN")
 	if errCreateToken != nil {
-		log.Printf("error creating new token: %v\n", errCreateToken)
+		s.Zerolog.Err(errCreateToken).Msg("error creating new token")
 		write.WriteHeader(http.StatusInternalServerError)
 		WriteResponse(write, "Ошибка создания администратора", true, http.StatusInternalServerError)
 		return
@@ -58,17 +57,17 @@ func (s *server) CreateAdmin(write http.ResponseWriter, request *http.Request) {
 		Token:      token,
 	}
 	if errNewAdmin := s.Store.NewAdmin(newAdmin); errNewAdmin != nil {
-		log.Printf("error creating new admin: %v\n", errNewAdmin)
+		s.Zerolog.Err(errNewAdmin).Msg("error creating new admin")
 		write.WriteHeader(http.StatusInternalServerError)
 		WriteResponse(write, "Ошибка создания администратора", true, http.StatusInternalServerError)
 		return
 	}
 	if errNewPassword := s.Store.NewPassword(newPassword); errNewPassword != nil {
-		log.Printf("error creating new password for admin: %v\n", errNewPassword)
+		s.Zerolog.Err(errNewPassword).Msg("error creating new password for admin")
 		if errClearingBrokenAdmin := s.Store.DeleteAdmin(key); errClearingBrokenAdmin != nil {
-			log.Printf("error deleting new admin without password: %v\n", errClearingBrokenAdmin)
+			s.Zerolog.Err(errClearingBrokenAdmin).Msg("error deleting new admin without password")
 		}
-		log.Println("new admin without password cleared")
+		s.Zerolog.Info().Msg("new admin without password cleared")
 		write.WriteHeader(http.StatusInternalServerError)
 		WriteResponse(write, "Ошибка создания администратора", true, http.StatusInternalServerError)
 		return
@@ -76,7 +75,7 @@ func (s *server) CreateAdmin(write http.ResponseWriter, request *http.Request) {
 	s.AdminsCache.WriteAdmin(newAdmin)
 	admin, errGetAdmin := s.Store.GetAdmin(key)
 	if errGetAdmin != nil {
-		log.Printf("error returns new admin data: %v\n", errGetAdmin)
+		s.Zerolog.Err(errGetAdmin).Msg("error at returning new admin data")
 		write.WriteHeader(http.StatusInternalServerError)
 		WriteResponse(write, "Не удалось получить созданного администратора", true, http.StatusInternalServerError)
 		return
@@ -96,6 +95,7 @@ func (s *server) GetAdmin(write http.ResponseWriter, request *http.Request) {
 	UserIdString := request.Header.Get("X-User-Id")
 	UserId, errConv := strconv.Atoi(UserIdString)
 	if errConv != nil {
+		s.Zerolog.Err(errConv).Str("cannot convert user id", UserIdString)
 		write.WriteHeader(http.StatusInternalServerError)
 		WriteResponse(write, "Произошла ошибка на сервере", true, http.StatusInternalServerError)
 		return
@@ -105,14 +105,14 @@ func (s *server) GetAdmin(write http.ResponseWriter, request *http.Request) {
 		return
 	}
 	if p, ok_ := s.AdminsCache.ReadById(UserId); ok_ {
-		log.Printf("admin loaded from cache: %d", (*p).Key)
+		s.Zerolog.Info().Int("admin loaded from cache", (*p).Key)
 		write.WriteHeader(http.StatusOK)
 		WriteDataResponse(write, "Администратор получен", false, http.StatusOK, *p)
 		return
 	}
 	admin, errGetAdmin := s.Store.GetAdmin(UserId)
 	if errGetAdmin != nil {
-		log.Printf("cannot check admin: %v\n", errGetAdmin)
+		s.Zerolog.Err(errGetAdmin).Msg("cannot check admin")
 		write.WriteHeader(http.StatusInternalServerError)
 		WriteResponse(write, "Ошибка сервера", true, http.StatusInternalServerError)
 		return
@@ -131,6 +131,7 @@ func (s *server) GetAllAdminsExcept(write http.ResponseWriter, request *http.Req
 	UserIdString := request.Header.Get("X-User-Id")
 	UserId, errConv := strconv.Atoi(UserIdString)
 	if errConv != nil {
+		s.Zerolog.Err(errConv).Str("cannot convert user id", UserIdString)
 		write.WriteHeader(http.StatusInternalServerError)
 		WriteResponse(write, "Произошла ошибка на сервере", true, http.StatusInternalServerError)
 		return
@@ -141,7 +142,7 @@ func (s *server) GetAllAdminsExcept(write http.ResponseWriter, request *http.Req
 	}
 	admins, errGetAdmin := s.Store.GetAllAdminsExcept(UserId)
 	if errGetAdmin != nil {
-		log.Printf("cannot list admins: %v\n", errGetAdmin)
+		s.Zerolog.Err(errGetAdmin).Msg("cannot list admins")
 		write.WriteHeader(http.StatusInternalServerError)
 		WriteResponse(write, "Ошибка сервера", true, http.StatusInternalServerError)
 		return
@@ -149,4 +150,13 @@ func (s *server) GetAllAdminsExcept(write http.ResponseWriter, request *http.Req
 	write.WriteHeader(http.StatusOK)
 	WriteDataResponse(write, "Список администраторов получен", false, http.StatusOK, admins)
 	return
+}
+
+func (s *server) GetClassesHistoryForAdmin(write http.ResponseWriter, request *http.Request) {
+	if request.Method != http.MethodGet {
+		write.WriteHeader(http.StatusNotFound)
+		WriteResponse(write, "Неизвестный метод", true, http.StatusNotFound)
+		return
+	}
+
 }

@@ -346,7 +346,10 @@ func (s *server) GetClassesMonthAdmin(write http.ResponseWriter, request *http.R
 	today := time.Now()
 	lastDate := time.Now().Add(24 * 30 * time.Hour)
 
-	var month string
+	var (
+		month       string
+		dayLastDate string
+	)
 
 	if today.Month() < 10 {
 		month = fmt.Sprintf("0%d", today.Month())
@@ -354,7 +357,13 @@ func (s *server) GetClassesMonthAdmin(write http.ResponseWriter, request *http.R
 		month = fmt.Sprintf("%d", today.Month())
 	}
 
-	stringToday := fmt.Sprintf("%d-%s-%d", today.Year(), month, today.Day())
+	day := strconv.Itoa(today.Day())
+
+	if today.Day() < 10 {
+		day = "0" + day
+	}
+
+	stringToday := fmt.Sprintf("%d-%s-%s", today.Year(), month, day)
 
 	if lastDate.Month() < 10 {
 		month = fmt.Sprintf("0%d", lastDate.Month())
@@ -362,7 +371,13 @@ func (s *server) GetClassesMonthAdmin(write http.ResponseWriter, request *http.R
 		month = fmt.Sprintf("%d", lastDate.Month())
 	}
 
-	stringLastDay := fmt.Sprintf("%d-%s-%d", lastDate.Year(), month, lastDate.Day())
+	if lastDate.Day() < 10 {
+		dayLastDate = fmt.Sprintf("0%d", lastDate.Day())
+	} else {
+		dayLastDate = fmt.Sprintf("%d", lastDate.Day())
+	}
+
+	stringLastDay := fmt.Sprintf("%d-%s-%s", lastDate.Year(), month, dayLastDate)
 
 	classes, err := s.Store.GetClassesForMonth("ADMIN", stringToday, stringLastDay)
 	if err != nil {
@@ -372,6 +387,7 @@ func (s *server) GetClassesMonthAdmin(write http.ResponseWriter, request *http.R
 		return
 	}
 	c, err := utils.FillMonthCalendar(stringToday, stringLastDay, classes)
+	fmt.Println(stringToday)
 	if err != nil {
 		log.Println("err at listing classes:", err)
 		write.WriteHeader(http.StatusInternalServerError)

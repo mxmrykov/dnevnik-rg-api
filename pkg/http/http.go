@@ -1,45 +1,45 @@
 package http
 
 import (
-	"log"
 	"net/http"
 	"time"
 
 	"dnevnik-rg.ru/config"
 	"dnevnik-rg.ru/internal/http/external"
 	"dnevnik-rg.ru/internal/store"
+	"github.com/rs/zerolog"
 )
 
-func NewHttp(configHttp *config.Http, rgStore store.Store, recoveryRequired bool) {
+func NewHttp(configHttp *config.Http, rgStore store.Store, recoveryRequired bool, logger *zerolog.Logger) {
 	mux := http.NewServeMux()
-	server := external.NewServer(rgStore)
+	server := external.NewServer(rgStore, logger)
 	cacheRecoveryTimeStart := time.Now()
 
 	go func(cacheRecoveryTimeStart *time.Time) {
 		if !recoveryRequired {
 			return
 		}
-		log.Println("cache recovery is required, starting...")
+		logger.Info().Msg("cache recovery is required, starting...")
 		pupils, errRecoveryPupils := rgStore.GetAllPupils()
 		if errRecoveryPupils != nil {
-			log.Println("error recovering pupils from DB to cache:", errRecoveryPupils)
+			logger.Err(errRecoveryPupils).Msg("error recovering pupils from DB to cache")
 		}
 		server.RecoverPupils(pupils)
 		coaches, errRecoveryCoaches := rgStore.GetAllCoaches()
 		if errRecoveryCoaches != nil {
-			log.Println("error recovering coaches from DB to cache:", errRecoveryCoaches)
+			logger.Err(errRecoveryCoaches).Msg("error recovering coaches from DB to cache")
 		}
 		server.RecoverCoaches(coaches)
 		admins, errRecoveryAdmins := rgStore.GetAllAdmins()
 		if errRecoveryAdmins != nil {
-			log.Println("error recovering admins from DB to cache:", errRecoveryAdmins)
+			logger.Err(errRecoveryCoaches).Msg("error recovering admins from DB to cache")
 		}
 		server.RecoverAdmins(admins)
-		log.Println("cache recovery is overed | recovery time:", time.Since(*cacheRecoveryTimeStart))
+		logger.Info().Dur("recovery time", time.Since(*cacheRecoveryTimeStart)).Msg("cache recovery is overed")
 		return
 	}(&cacheRecoveryTimeStart)
 
-	log.Println("starting web server...")
+	logger.Info().Msg("starting web server")
 
 	//Group Admin
 	mux.HandleFunc(external.GroupV1+external.CreateAdminRoute, server.CreateAdmin)
@@ -114,5 +114,6 @@ func NewHttp(configHttp *config.Http, rgStore store.Store, recoveryRequired bool
 	handler := external.CheckPermission(mux)
 	handler = external.Logger(handler)
 	handler = external.SetCors(handler)
-	log.Fatal(http.ListenAndServe(configHttp.Host+":"+configHttp.Port, handler), "server work time:", time.Since(cacheRecoveryTimeStart))
+
+	logger.Err(http.ListenAndServe(configHttp.Host+":"+configHttp.Port, handler)).Dur("server work time", time.Since(cacheRecoveryTimeStart))
 }
