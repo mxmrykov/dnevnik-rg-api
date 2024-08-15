@@ -1,0 +1,44 @@
+version:
+  "3.8"
+
+services:
+  postgres:
+    image: postgres:14.0
+    container_name: "pg-shard-1"
+    environment:
+      POSTGRES_DB: 'dnevnik-rg.shard-1'
+      POSTGRES_USER: 'c128f7'
+      POSTGRES_PASSWORD: '058cb8ee6a01b88f'
+    volumes:
+      - ./migrations/schema.sql:/docker-entrypoint-initdb.d/schemas.sql
+      - ./flyway/sql:/flyway/sql
+    command: [ "docker-entrypoint.sh", "postgres" ]
+    ports:
+      - "5588:5432"
+  flyway:
+    image: flyway/flyway:10.11
+    depends_on:
+      - postgres
+    volumes:
+      - ./migrations/sql:/flyway/sql
+    env_file:
+      - ./migrations/env/.env
+    environment:
+      - FLYWAY_LOCATIONS="filesystem:/flyway/sql"
+    entrypoint: [ "sh", "-c", "/flyway/flyway -url=jdbc:postgresql://pg-shard-1:5432/dnevnik-rg.shard-1 -user=c128f7 -password=058cb8ee6a01b88f -locations=filesystem:/flyway/sql -connectRetries=3 migrate" ]
+  service:
+    build:
+      context: .
+      target: final
+    depends_on:
+      flyway:
+        condition: service_completed_successfully
+    ports:
+      - "8000:8000"
+  kafka-ui:
+    container_name: kafka-ui
+    image: provectuslabs/kafka-ui:latest
+    ports:
+      - 8082:8080
+    environment:
+      DYNAMIC_CONFIG_ENABLED: true

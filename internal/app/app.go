@@ -1,31 +1,24 @@
 package app
 
 import (
+	"time"
+
 	"dnevnik-rg.ru/config"
-	"dnevnik-rg.ru/internal/repository"
+	"dnevnik-rg.ru/internal/store"
+	"dnevnik-rg.ru/pkg/http"
 	"dnevnik-rg.ru/pkg/postgres"
-	"log"
+	"github.com/rs/zerolog"
 )
 
-func App(appConfig *config.Config) {
+func App(appConfig *config.Config, logger *zerolog.Logger) {
 	postgresConnection, errConnectPostgres := postgres.NewPostgres(&appConfig.Postgres)
 	if errConnectPostgres != nil {
-		log.Fatalf("cannot connect to postrges: %v", errConnectPostgres)
+		logger.Err(errConnectPostgres).Msg("cannot connect to postrges")
 		return
 	}
-	repos := repository.NewRepository(postgresConnection)
-	if errInitPupils := repos.InitTablePupils(); errInitPupils != nil {
-		log.Printf("error initializing pupils table: %v\n", errInitPupils)
-	}
-	if errInitCoaches := repos.InitTableCoaches(); errInitCoaches != nil {
-		log.Printf("error initializing coaches table: %v\n", errInitCoaches)
-	}
-	if errInitPasswords := repos.InitTablePasswords(); errInitPasswords != nil {
-		log.Printf("error initializing passwords table: %v\n", errInitPasswords)
-	}
-	if errInitClasses := repos.InitTableClasses(); errInitClasses != nil {
-		log.Printf("error initializing classes table: %v\n", errInitClasses)
-	}
-	log.Println("db tables initialized")
+	rgStore := store.NewStore(postgresConnection, 20*time.Second)
 
+	logger.Info().Msg("database connected")
+
+	http.NewHttp(&appConfig.Http, rgStore, true, logger)
 }

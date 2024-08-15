@@ -1,9 +1,0 @@
-services:
-  postgres:
-    image: postgres:14.0
-    environment:
-      POSTGRES_DB: 'dnevnik-rg'
-      POSTGRES_USER: '30c128f7'
-      POSTGRES_PASSWORD: '058cb8ee6a01b88f'
-    ports:
-      - '127.0.0.1:5588:5432'
