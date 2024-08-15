@@ -13,6 +13,7 @@ type Server interface {
 	CreateAdmin(write http.ResponseWriter, request *http.Request)
 	GetAdmin(write http.ResponseWriter, request *http.Request)
 	GetAllAdminsExcept(write http.ResponseWriter, request *http.Request)
+	GetClassesHistoryForAdmin(write http.ResponseWriter, request *http.Request)
 
 	CreateCoach(write http.ResponseWriter, request *http.Request)
 	GetCoach(write http.ResponseWriter, request *http.Request)

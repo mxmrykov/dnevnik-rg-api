@@ -99,6 +99,7 @@ func NewHttp(configHttp *config.Http, rgStore store.Store, recoveryRequired bool
 	mux.HandleFunc(external.GroupV1+external.CancelClass, server.CancelClass)
 	mux.HandleFunc(external.GroupV1+external.DeleteClass, server.DeleteClass)
 	mux.HandleFunc(external.GroupV1+external.ClassInfoAdmin, server.GetClassInfoAdmin)
+	mux.HandleFunc(external.GroupV1+external.ClassesHistoryAdmin, server.GetClassesHistoryForAdmin)
 
 	//Group auth
 	mux.HandleFunc(external.GroupV1+external.AuthRoute, server.Authorize)

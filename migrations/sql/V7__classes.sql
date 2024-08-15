@@ -256,7 +256,51 @@ begin
                array_length(cl.pupil, 1) as capacity,
                cl.isopentosignup
         from classes.classes as cl
-        where cl.class_date = class_date_ and user_id = any(cl.pupil)
+        where cl.class_date = class_date_
+          and user_id = any (cl.pupil)
         order by class_time;
+end;
+$$;
+
+drop function if exists classes.get_admin_classes_history(datefrom text);
+create or replace function classes.get_admin_classes_history(datefrom text)
+    returns table
+            (
+                key            bigint,
+                class_date     text,
+                class_time     varchar(5),
+                class_dur      varchar(5),
+                coach          text,
+                coach_key      int,
+                classtype      varchar(10),
+                pupils         text[],
+                pupils_keys    int[],
+                scheduled      boolean,
+                capacity       int,
+                isopentosignup boolean
+            )
+    security definer
+    language plpgsql
+as
+$$
+begin
+    return query
+        select cl.key,
+               cl.class_date,
+               cl.class_time,
+               cl.class_dur,
+               (select c.fio from users.coaches as c where c.key = cl.coach),
+               cl.coach                            as coach_key,
+               cl.classtype,
+               ARRAY(SELECT u.fio
+                     FROM users.pupils AS u
+                     WHERE u.key = ANY (cl.pupil)) AS pupils,
+               cl.pupil                            as pupils_keys,
+               cl.scheduled,
+               cl.pupilcount                       as capacity,
+               cl.isopentosignup
+        from classes.classes as cl
+        where cl.class_date < datefrom
+        order by class_date, class_time desc;
 end;
 $$;

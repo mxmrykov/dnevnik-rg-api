@@ -173,3 +173,40 @@ func (s *RgStore) GetAdminClassesForToday(date string) ([]models.ShortClassInfo,
 
 	return classesInfo, nil
 }
+
+func (s *RgStore) GetAdminClassesHistory(date string) ([]models.ShortStringClassInfo, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), s.operationTimeout)
+	defer cancel()
+
+	const query = `select * from classes.get_admin_classes_history($1)`
+
+	classInfo, classesInfo := *new(models.ShortStringClassInfo), make([]models.ShortStringClassInfo, 0)
+
+	rows, _ := s.s.Query(ctx, query, date)
+
+	_, err := pgx.ForEachRow(
+		rows,
+		[]any{
+			&classInfo.Key,
+			&classInfo.ClassDate,
+			&classInfo.ClassTime,
+			&classInfo.ClassDuration,
+			&classInfo.Coach,
+			&classInfo.CoachKey,
+			&classInfo.ClassType,
+			&classInfo.Pupils,
+			&classInfo.PupilsKeys,
+			&classInfo.Scheduled,
+			&classInfo.PupilCount,
+			&classInfo.IsOpenToSignUp,
+		},
+		func() error {
+			classesInfo = append(classesInfo, classInfo)
+			return nil
+		})
+	if err != nil {
+		return nil, err
+	}
+
+	return classesInfo, nil
+}

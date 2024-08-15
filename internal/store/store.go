@@ -28,6 +28,7 @@ type Store interface {
 	IsAdminExists(key int) (bool, error)
 	GetAdmin(key int) (*response.Admin, error)
 	GetAdminClassesForToday(date string) ([]models.ShortClassInfo, error)
+	GetAdminClassesHistory(date string) ([]models.ShortStringClassInfo, error)
 
 	GetAllCoaches() ([]models.Coach, error)
 	CreateCoach(coach models.Coach) error

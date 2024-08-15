@@ -34,8 +34,10 @@ type ShortStringClassInfo struct {
 	Key            int      `json:"key"`
 	Pupils         []string `json:"pupil"`
 	Coach          string   `json:"coach"`
+	CoachKey       int      `json:"coach_key"`
 	ClassTime      string   `json:"class_time"`
 	ClassDate      string   `json:"class_date"`
+	PupilsKeys     []int    `json:"pupils_keys"`
 	ClassDuration  string   `json:"class_duration"`
 	ClassType      string   `json:"class_type"`
 	PupilCount     int      `json:"pupil_count"`
