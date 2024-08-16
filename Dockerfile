@@ -8,7 +8,8 @@ RUN --mount=type=cache,target=/go/pkg/mod/ \
 RUN --mount=type=cache,target=/go/pkg/mod/ \
     --mount=type=bind,target=. \
     CGO_ENABLED=0 go build -o /bin/server ./cmd/dnevnik-rg
-COPY ./config/stage/config.yml /bin/config.yml
+COPY ./config/stage/config.yml /bin/stage/config.yml
+COPY ./config/prod/config.yml /bin/prod/config.yml
 FROM alpine:latest AS final
 RUN --mount=type=cache,target=/var/cache/apk \
     apk --update add \
@@ -27,6 +28,7 @@ RUN adduser \
     appuser
 USER appuser
 COPY --from=build /bin/server /bin/
-COPY --from=build /bin/config.yml /bin/config.yml
+COPY --from=build /bin/stage/config.yml /bin/stage/config.yml
+COPY --from=build /bin/prod/config.yml /bin/prod/config.yml
 EXPOSE 8000
 ENTRYPOINT [ "/bin/server" ]

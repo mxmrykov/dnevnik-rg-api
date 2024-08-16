@@ -46,9 +46,13 @@ type (
 
 func NewConfig() (*Config, error) {
 	config := &Config{}
-	//stageConfigPath := "/bin/config.yml"
-	localConfigPath := "config/local/config.yml"
-	if errReadConfig := cleanenv.ReadConfig(localConfigPath, config); errReadConfig != nil {
+	path := "config/local/config.yml"
+	if os.Getenv("BUILD_ENV") == "stage" {
+		path = "/bin/stage/config.yml"
+	} else if os.Getenv("BUILD_ENV") == "prod" {
+		path = "/bin/prod/config.yml"
+	}
+	if errReadConfig := cleanenv.ReadConfig(path, config); errReadConfig != nil {
 		return nil, fmt.Errorf("error read config: %v", errReadConfig)
 	}
 	if err := os.Setenv("JWT_SECRET", config.JwtSecret); err != nil {
