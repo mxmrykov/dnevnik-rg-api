@@ -9,50 +9,69 @@ import (
 
 type (
 	Config struct {
-		App      `yaml:"APP"`
-		Http     `yaml:"HTTP"`
-		Postgres `yaml:"POSTGRES"`
-		TgBots   `yaml:"TG_BOTS"`
+		App         `yaml:"app"`
+		Http        `yaml:"http"`
+		Postgres    `yaml:"postgres"`
+		Telebot     `yaml:"telebot"`
+		Vault       `yaml:"vault_config"`
+		VaultSecret `yaml:"vault"`
 	}
 
 	App struct {
-		Name      string `yaml:"APP_NAME" env:"APP_NAME"`
-		Version   string `yaml:"APP_VERSION" env:"APP_VERSION"`
-		Deploy    string `yaml:"DEPLOY" env:"DEPLOY"`
-		JwtSecret string `required:"true" yaml:"JWT_SECRET" env:"JWT_SECRET"`
+		Name      string `yaml:"app_name" env:"APP_NAME"`
+		Version   string `yaml:"app_version" env:"APP_VERSION"`
+		Deploy    string `yaml:"deploy" env:"DEPLOY"`
+		JwtSecret string `required:"true" yaml:"jwt_secret" env:"APP_JWT_SECRET"`
 	}
 
 	Http struct {
-		Host string `required:"true" yaml:"HTTP_HOST" env:"HTTP_HOST"`
-		Port string `required:"true" yaml:"HTTP_PORT" env:"HTTP_PORT"`
+		Host string `required:"true" yaml:"http_host" env:"HTTP_HOST"`
+		Port string `required:"true" yaml:"http_port" env:"HTTP_PORT"`
 	}
 
 	Postgres struct {
-		Shard1 struct {
-			Host     string `required:"true" yaml:"PG_HOST" env:"PG_HOST"`
-			Port     string `required:"true" yaml:"PG_PORT" env:"PG_PORT"`
-			User     string `required:"true" yaml:"PG_USER" env:"PG_USER"`
-			Password string `required:"true" yaml:"PG_PASSWORD" env:"PG_PASSWORD"`
-			DBName   string `required:"true" yaml:"PG_NAME" env:"PG_NAME"`
-			PgDriver string `required:"true" yaml:"PG_DRIVER" env:"PG_DRIVER"`
-		} `required:"true" yaml:"shard1" env:"shard1"`
+		Host     string `required:"true" yaml:"postgres_host" env:"PG_HOST"`
+		Port     string `required:"true" yaml:"postgres_port" env:"PG_PORT"`
+		User     string `required:"true" yaml:"postgres_username" env:"PG_USER"`
+		Password string `required:"true" yaml:"postgres_password" env:"PG_PASSWORD"`
+		DBName   string `required:"true" yaml:"postgres_dbname" env:"PG_NAME"`
 	}
-	TgBots struct {
-		TgTechBot struct {
-			Token string `required:"true" yaml:"TG_TECH_TOKEN" env:"TG_TECH_TOKEN"`
-		} `required:"true" yaml:"TECH_BOT" env:"TECH_BOT"`
+
+	Vault struct {
+		Host string `required:"true" yaml:"vault_host" env:"VAULT_HOST"`
+		Port string `required:"true" yaml:"vault_port" env:"VAULT_PORT"`
+	}
+
+	Telebot struct {
+		Token string `required:"true" yaml:"token" env:"TELEBOT_TOKEN"`
+	}
+
+	VaultSecret struct {
+		PostgresVault struct {
+			Path             string `yaml:"path"`
+			UsernameVariable string `yaml:"username_variable"`
+			PasswordVariable string `yaml:"password_variable"`
+		} `yaml:"postgres"`
+		App struct {
+			Path              string `yaml:"path"`
+			JwtSecretVariable string `yaml:"jwt_secret_variable"`
+		} `yaml:"app"`
+		Telebot struct {
+			Path          string `yaml:"path"`
+			TokenVariable string `yaml:"token_variable"`
+		} `yaml:"telebot"`
+	}
+
+	// VaultCfg especially for vault extractor
+	VaultCfg struct {
+		Vault       `yaml:"vault_config"`
+		VaultSecret `yaml:"vault"`
 	}
 )
 
 func NewConfig() (*Config, error) {
-	config := &Config{}
-	path := "config/local/config.yml"
-	if os.Getenv("BUILD_ENV") == "stage" {
-		path = "/bin/stage/config.yml"
-	} else if os.Getenv("BUILD_ENV") == "prod" {
-		path = "/bin/prod/config.yml"
-	}
-	if errReadConfig := cleanenv.ReadConfig(path, config); errReadConfig != nil {
+	config := new(Config)
+	if errReadConfig := cleanenv.ReadConfig(getConfigPath(), config); errReadConfig != nil {
 		return nil, fmt.Errorf("error read config: %v", errReadConfig)
 	}
 	if err := os.Setenv("JWT_SECRET", config.JwtSecret); err != nil {
@@ -68,4 +87,25 @@ func NewConfig() (*Config, error) {
 		return nil, err
 	}
 	return config, nil
+}
+
+func NewVaultConfig() (*VaultCfg, error) {
+	vaultConfig := new(VaultCfg)
+
+	if err := cleanenv.ReadConfig(getConfigPath(), vaultConfig); err != nil {
+		return nil, err
+	}
+
+	return vaultConfig, nil
+}
+
+func getConfigPath() string {
+	path := "config/local/config.yml"
+	if os.Getenv("BUILD_ENV") == "stage" {
+		path = "/bin/stage/config.yml"
+	} else if os.Getenv("BUILD_ENV") == "prod" {
+		path = "/bin/prod/config.yml"
+	}
+
+	return path
 }
