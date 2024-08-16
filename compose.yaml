@@ -5,37 +5,10 @@ services:
   #######
   # STAGE
   #######
-  postgres-stage:
-    image: postgres:14.0
-    container_name: "pgsql.stage"
-    environment:
-      POSTGRES_DB: 'dnevnik_rg'
-      POSTGRES_USER: 'dnevnik_rg_user_stage'
-      POSTGRES_PASSWORD: 'NzZiMGE3YWUtYzFjNy00ZTI2LWIyY2ItMzFkOGJhNDA5OWJk'
-    volumes:
-      - ./migrations/schema.sql:/docker-entrypoint-initdb.d/schemas.sql
-      - ./flyway/sql:/flyway/sql
-    command: [ "docker-entrypoint.sh", "postgres" ]
-    ports:
-      - "5589:5432"
-  flyway-stage:
-    image: flyway/flyway:10.11
-    depends_on:
-      - postgres-stage
-    volumes:
-      - ./migrations/stage/sql:/flyway/sql
-    env_file:
-      - ./migrations/stage/env/.env
-    environment:
-      - FLYWAY_LOCATIONS="filesystem:/flyway/sql"
-    entrypoint: [ "sh", "-c", "/flyway/flyway -url=jdbc:postgresql://pgsql.stage:5432/dnevnik_rg -user=dnevnik_rg_user_stage -password=NzZiMGE3YWUtYzFjNy00ZTI2LWIyY2ItMzFkOGJhNDA5OWJk -locations=filesystem:/flyway/sql -connectRetries=3 migrate" ]
   service-stage:
     build:
       context: .
       target: final
-    depends_on:
-      flyway-stage:
-        condition: service_completed_successfully
     environment:
       BUILD_ENV: "stage"
     ports:
@@ -44,72 +17,11 @@ services:
   ######
   # PROD
   ######
-
-  postgres-prod:
-    image: postgres:14.0
-    container_name: "pgsql.prod"
-    environment:
-      POSTGRES_DB: 'dnevnik_rg'
-      POSTGRES_USER: 'dnevnik_rg_user_prod'
-      POSTGRES_PASSWORD: 'NDY1Yzg2YjQtNDQzMy00OWQzLTkxODgtMGNkNmQ3Nzc4MmMx'
-    volumes:
-      - ./migrations/schema.sql:/docker-entrypoint-initdb.d/schemas.sql
-      - ./flyway/sql:/flyway/sql
-    command: [ "docker-entrypoint.sh", "postgres" ]
-    ports:
-      - "5588:5432"
-  flyway-prod:
-    image: flyway/flyway:10.11
-    depends_on:
-      - postgres-prod
-    volumes:
-      - ./migrations/prod/sql:/flyway/sql
-    env_file:
-      - ./migrations/prod/env/.env
-    environment:
-      - FLYWAY_LOCATIONS="filesystem:/flyway/sql"
-    entrypoint: [ "sh", "-c", "/flyway/flyway -url=jdbc:postgresql://pgsql.prod:5432/dnevnik_rg -user=dnevnik_rg_user_prod -password=NDY1Yzg2YjQtNDQzMy00OWQzLTkxODgtMGNkNmQ3Nzc4MmMx -locations=filesystem:/flyway/sql -connectRetries=3 migrate" ]
   service-prod:
     build:
       context: .
       target: final
-    depends_on:
-      flyway-prod:
-        condition: service_completed_successfully
     environment:
       BUILD_ENV: "prod"
     ports:
       - "8001:8000"
-
-  jenkins:
-    image: jenkins/jenkins:lts-jdk17
-    ports:
-      - "8080:8080"
-      - "50000:50000"
-    volumes:
-      - jenkins_home:/var/jenkins_home
-      - /var/run/docker.sock:/var/run/docker.sock
-    user: root
-    networks:
-      - cicd_network
-  nexus:
-    image: sonatype/nexus3
-    ports:
-      - "8081:8081"
-      - "8083:8083"
-    volumes:
-      - nexus_data:/nexus-data
-    networks:
-      - cicd_network
-
-volumes:
-  jenkins_home:
-    external: true
-    name: jenkins_home
-  nexus_data:
-    external: true
-    name: nexus_data
-
-networks:
-  cicd_network:
-    driver: bridge
