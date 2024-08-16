@@ -2,17 +2,17 @@ APP:
   APP_NAME: "dnevnik-rg"
   APP_VERSION: "1.0"
   DEPLOY: "localhost:8000"
-  JWT_SECRET: "N2U3MmI1NTktZmUxOS00MzQ3LTk2YTQtM2Q0MjVlODc2OWIy"
+  JWT_SECRET: "YTNjNzcwNTctODA4MC00YTc4LThmNzctODVmMDk1NzMyMmRm"
 HTTP:
   HTTP_HOST: "0.0.0.0"
   HTTP_PORT: "8000"
 POSTGRES:
   shard1:
     PG_NAME: "dnevnik_rg"
-    PG_HOST: "pgsql.stage"
+    PG_HOST: "pgsql.prod"
     PG_PORT: "5432"
-    PG_USER: "dnevnik_rg_user_stage"
-    PG_PASSWORD: "NzZiMGE3YWUtYzFjNy00ZTI2LWIyY2ItMzFkOGJhNDA5OWJk"
+    PG_USER: "dnevnik_rg_user_prod"
+    PG_PASSWORD: "NDY1Yzg2YjQtNDQzMy00OWQzLTkxODgtMGNkNmQ3Nzc4MmMx"
 TG_BOTS:
   TECH_BOT:
     TG_TECH_TOKEN: "6902343077:AAERsYxj7p-_eiSLL4cFPaX90yWi_cY1jdQ"

@@ -75,5 +75,3 @@ begin
         select p.checksum, p.token from passwords.passwords as p where p.key = key_;
 end;
 $$;
-
-alter function auth.select_user_private(integer, text, text) owner to c128f7;
