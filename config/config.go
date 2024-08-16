@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/ilyakaznacheev/cleanenv"
+	"github.com/rs/zerolog/log"
 )
 
 type (
@@ -101,6 +102,7 @@ func NewVaultConfig() (*VaultCfg, error) {
 
 func getConfigPath() string {
 	path := "config/local/config.yml"
+	log.Info().Msg(os.Getenv("BUILD_ENV") + "," + os.Getenv("VAULT_DEV_ROOT_TOKEN_ID"))
 	if os.Getenv("BUILD_ENV") == "stage" {
 		path = "/bin/stage/config.yml"
 	} else if os.Getenv("BUILD_ENV") == "prod" {
