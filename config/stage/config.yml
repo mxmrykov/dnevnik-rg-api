@@ -10,7 +10,7 @@ postgres:
   postgres_host: "localhost"
   postgres_port: "5589"
 vault_config:
-  vault_host: "stage-vault-1"
+  vault_host: "host.docker.internal"
   vault_port: "8200"
 
 vault:
