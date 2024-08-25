@@ -1,20 +1,26 @@
 package external
 
 import (
-	"dnevnik-rg.ru/pkg/utils"
-	"github.com/golang-jwt/jwt"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
 	"time"
+
+	"dnevnik-rg.ru/pkg/utils"
+	"github.com/golang-jwt/jwt"
+	"github.com/rs/zerolog"
 )
 
-func Logger(next http.Handler) http.Handler {
+func Logger(next http.Handler, logger *zerolog.Logger) http.Handler {
 	return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		start := time.Now()
 		next.ServeHTTP(writer, request)
-		log.Printf("Handle %s | Method %s | Time %s", request.URL, request.Method, time.Since(start))
+		logger.Info().
+			Str("Handle", request.URL.String()).
+			Str("Method", request.Method).
+			Str("Duration", time.Since(start).String()).
+			Msg("Parsing HTTP request")
 	})
 }
 
