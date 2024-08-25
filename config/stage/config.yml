@@ -7,10 +7,10 @@ http:
   http_port: "8000"
 postgres:
   postgres_dbname: "dnevnik_rg"
-  postgres_host: "localhost"
+  postgres_host: "host.docker.internal"
   postgres_port: "5589"
 vault_config:
-  vault_host: "localhost"
+  vault_host: "host.docker.internal"
   vault_port: "8200"
 
 vault:

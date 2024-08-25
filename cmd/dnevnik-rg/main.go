@@ -21,6 +21,8 @@ func main() {
 		return
 	}
 
+	log.Info().Msg("vault host config created")
+
 	vaultClient, err := vault.NewVaultClient(vaultCfg)
 
 	if err != nil {
@@ -28,10 +30,14 @@ func main() {
 		return
 	}
 
+	log.Info().Msg("vault client created")
+
 	if err = utils.ExtractVaultDataToENV(ctx, vaultClient, vaultCfg); err != nil {
 		log.Err(err).Send()
 		return
 	}
+
+	log.Info().Msg("vault data extracted")
 
 	appConfig, err := config.NewConfig()
 	if err != nil {
