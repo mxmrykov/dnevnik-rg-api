@@ -7,20 +7,20 @@ http:
   http_port: "8000"
 postgres:
   postgres_dbname: "dnevnik_rg"
-  postgres_host: "localhost"
+  postgres_host: "host.docker.internal"
   postgres_port: "5588"
 vault_config:
-  vault_host: "localhost"
+  vault_host: "host.docker.internal"
   vault_port: "8201"
 
 vault:
   postgres:
-    path: "/secret/postgres"
+    path: "/v1/secret/data/postgres"
     username_variable: "postgres_username"
     password_variable: "postgres_password"
   app:
-    path: "/secret/app"
+    path: "/v1/secret/data/app"
     jwt_secret_variable: "jwt_secret"
   telebot:
-    path: "/secret/telebot"
+    path: "/v1/secret/data/telebot"
     token_variable: "token"
