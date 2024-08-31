@@ -344,7 +344,7 @@ func (s *server) GetClassesMonthAdmin(write http.ResponseWriter, request *http.R
 		return
 	}
 	today := time.Now()
-	lastDate := time.Now().Add(24 * 30 * time.Hour)
+	lastDate := time.Now().Add(24 * 29 * time.Hour)
 
 	var (
 		month       string
