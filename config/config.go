@@ -7,6 +7,11 @@ import (
 	"github.com/ilyakaznacheev/cleanenv"
 )
 
+var EnvPath = map[string]struct{}{
+	"stage": struct{}{},
+	"prod":  struct{}{},
+}
+
 type (
 	Config struct {
 		App         `yaml:"app"`
@@ -100,11 +105,9 @@ func NewVaultConfig() (*VaultCfg, error) {
 }
 
 func getConfigPath() string {
-	path := "config/local/config.yml"
-	if os.Getenv("BUILD_ENV") == "stage" {
-		path = "/bin/stage/config.yml"
-	} else if os.Getenv("BUILD_ENV") == "prod" {
-		path = "/bin/prod/config.yml"
+	path, BuildEnv := "config/local/config.yml", os.Getenv("BUILD_ENV")
+	if _, ok := EnvPath[BuildEnv]; ok {
+		path = fmt.Sprintf("/bin/%s/config.yml", BuildEnv)
 	}
 
 	return path
