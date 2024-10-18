@@ -113,7 +113,7 @@ func NewHttp(configHttp *config.Http, rgStore store.Store, recoveryRequired bool
 	)
 
 	handler := external.CheckPermission(mux)
-	handler = external.Logger(handler)
+	handler = external.Logger(handler, logger)
 	handler = external.SetCors(handler)
 
 	logger.Err(http.ListenAndServe(configHttp.Host+":"+configHttp.Port, handler)).Dur("server work time", time.Since(cacheRecoveryTimeStart))
